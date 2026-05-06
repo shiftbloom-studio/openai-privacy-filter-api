@@ -1,0 +1,40 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Python
+.python-version
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Hugging Face / model caches
+.cache/
+.hf-cache/
+models/
+privacy-filter/
+privacy-filter-model/*
+!privacy-filter-model/
+!privacy-filter-model/.gitkeep
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tooling
+.coverage
+coverage/
+playwright-report/
+.playwright-mcp/
