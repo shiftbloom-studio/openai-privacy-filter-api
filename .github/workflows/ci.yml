@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install API dependencies
+        run: python -m pip install -e "apps/api[dev]"
+      - name: Lint API
+        run: python -m ruff check apps/api
+      - name: Test API
+        run: python -m pytest apps/api
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install web dependencies
+        run: npm ci
+      - name: Lint web
+        run: npm --workspace apps/web run lint
+      - name: Typecheck web
+        run: npm --workspace apps/web run typecheck
+      - name: Test web
+        run: npm --workspace apps/web run test
+      - name: Build web
+        run: npm --workspace apps/web run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API container without inference extras
+        run: docker build -f infra/docker/api.Dockerfile --build-arg API_EXTRAS= -t privacy-filter-api:core .
