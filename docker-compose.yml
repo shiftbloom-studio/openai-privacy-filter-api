@@ -1,0 +1,35 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    environment:
+      HF_HOME: /models/huggingface
+      PRIVACY_FILTER_CORS_ORIGINS: http://localhost:3000,https://privacy.shiftbloom.studio
+      PRIVACY_FILTER_MODEL_ID: openai/privacy-filter
+      PRIVACY_FILTER_RUNTIME: docker-compose
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf-cache:/models/huggingface
+
+  web:
+    image: node:24-alpine
+    depends_on:
+      - api
+    working_dir: /workspace
+    command: sh -c "npm install && npm --workspace apps/web run dev -- --hostname 0.0.0.0"
+    environment:
+      PRIVACY_FILTER_API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - web-node-modules:/workspace/node_modules
+      - web-app-node-modules:/workspace/apps/web/node_modules
+
+volumes:
+  hf-cache:
+  web-node-modules:
+  web-app-node-modules:
+
