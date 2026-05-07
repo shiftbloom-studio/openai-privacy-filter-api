@@ -12,6 +12,21 @@ const routes = [
     path: "/docs",
     changeFrequency: "monthly",
     priority: 0.8
+  },
+  {
+    path: "/impressum",
+    changeFrequency: "yearly",
+    priority: 0.5
+  },
+  {
+    path: "/privacy",
+    changeFrequency: "yearly",
+    priority: 0.5
+  },
+  {
+    path: "/tech-stack",
+    changeFrequency: "monthly",
+    priority: 0.5
   }
 ] as const;
 
