@@ -44,7 +44,7 @@ jobs:
       web: ${{ steps.detect.outputs.web }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
@@ -126,10 +126,10 @@ jobs:
     if: needs.detect-changes.outputs.api == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: "3.12"
 
@@ -182,10 +182,10 @@ jobs:
     if: needs.detect-changes.outputs.web == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: "24"
           cache: npm
