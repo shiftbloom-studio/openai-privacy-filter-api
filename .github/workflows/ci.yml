@@ -44,3 +44,27 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - name: Build API container without inference extras
         run: docker build -f infra/docker/api.Dockerfile --build-arg API_EXTRAS= -t privacy-filter-api:core .
+      - name: Build and smoke test web container assets
+        run: |
+          set -euo pipefail
+
+          docker build -f infra/docker/web.Dockerfile -t privacy-filter-web:ci .
+          container_id="$(docker run --detach --publish 127.0.0.1:3012:3000 privacy-filter-web:ci)"
+          cleanup() {
+            docker rm --force "$container_id" >/dev/null
+          }
+          trap cleanup EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3012/ >/dev/null; then
+              break
+            fi
+            if [[ "$attempt" -eq 30 ]]; then
+              docker logs "$container_id"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl --fail --silent --show-error --head http://127.0.0.1:3012/logo.png
+          curl --fail --silent --show-error --head http://127.0.0.1:3012/apple-touch-icon.png
