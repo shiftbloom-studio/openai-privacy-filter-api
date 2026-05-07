@@ -26,9 +26,6 @@ export default function Home() {
           inspect the model response without leaving the sandbox.
         </p>
         <div className="extension-actions">
-          <a className="modern-btn" href="#sandbox">
-            Open sandbox
-          </a>
           <a className="tertiary-btn" href="/docs">
             API notes
           </a>
