@@ -81,13 +81,85 @@ textarea {
 .extension-shell {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: clamp(28px, 5vw, 64px) 0 80px;
+  padding: clamp(24px, 4vw, 44px) 0 80px;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 52px;
+  margin-bottom: clamp(52px, 8vw, 86px);
+}
+
+.site-brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.brand-wordmark {
+  display: inline-flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  column-gap: 0.46em;
+  align-items: baseline;
+  color: var(--brand-text);
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+}
+
+.brand-wordmark span {
+  background: linear-gradient(135deg, #111111 0%, #6366f1 58%, #e63946 100%);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-wordmark strong {
+  color: var(--brand-primary);
+  font-weight: 800;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 3vw, 44px);
+  color: var(--brand-gray);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.site-nav a:not(.modern-btn) {
+  transition: color 0.2s ease;
+}
+
+.site-nav a:not(.modern-btn):hover {
+  color: var(--brand-primary);
+}
+
+.nav-cta {
+  padding: 10px 18px;
+  font-size: 0.95rem;
 }
 
 .extension-hero {
   position: relative;
-  max-width: 860px;
-  padding: clamp(44px, 8vw, 84px) 0 clamp(26px, 5vw, 48px);
+  max-width: 960px;
+  padding: 0 0 clamp(26px, 5vw, 48px);
 }
 
 .extension-hero::before {
@@ -149,13 +221,24 @@ label {
 .docs-hero h1 {
   margin: 0;
   color: var(--brand-text);
-  font-size: clamp(3.5rem, 9vw, 7.2rem);
+  font-size: clamp(3rem, 7vw, 5.625rem);
   font-weight: 800;
   line-height: 0.95;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
 }
 
-.extension-hero h1 span,
+.extension-headline {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.18em;
+}
+
+.extension-headline .headline-word {
+  min-width: 0;
+  color: var(--brand-text);
+}
+
+.extension-headline .headline-accent,
 .docs-hero h1 {
   background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
   background-clip: text;
@@ -283,7 +366,7 @@ label {
 
 .sandbox-workbench {
   position: relative;
-  scroll-margin-top: 24px;
+  scroll-margin-top: 28px;
   border-top: 1px solid rgba(17, 24, 39, 0.08);
   padding-top: clamp(18px, 3vw, 28px);
 }
@@ -324,7 +407,7 @@ label {
 .panel-title h3 {
   margin: 0;
   font-size: 1.35rem;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 label,
@@ -474,7 +557,7 @@ mark {
   color: rgba(99, 102, 241, 0.8);
   font-size: 2.7rem;
   font-weight: 800;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -484,7 +567,7 @@ mark {
 
 .docs-hero {
   max-width: 860px;
-  padding: clamp(44px, 8vw, 82px) 0 34px;
+  padding: 0 0 34px;
 }
 
 .docs-hero h1 {
@@ -513,7 +596,7 @@ mark {
 .docs-card h2 {
   margin: 12px 0;
   font-size: clamp(1.55rem, 3vw, 2.15rem);
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .method {
@@ -556,6 +639,23 @@ mark {
 }
 
 @media (max-width: 820px) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 44px;
+  }
+
+  .site-nav {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+  }
+
+  .site-nav .nav-cta {
+    margin-left: auto;
+  }
+
   .extension-actions,
   .control-row {
     align-items: stretch;

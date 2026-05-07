@@ -1,4 +1,5 @@
 import { FilterSandbox } from "@/components/filter-sandbox";
+import { SiteHeader } from "@/components/site-header";
 
 import { createPageMetadata } from "./seo";
 
@@ -12,14 +13,11 @@ export const metadata = createPageMetadata({
 export default function Home() {
   return (
     <main className="extension-shell" id="main-content">
+      <SiteHeader />
       <section className="extension-hero" aria-labelledby="page-title">
-        <div className="extension-topline" aria-label="Project context">
-          <a className="studio-link" href="https://shiftbloom.studio">
-            shiftbloom.studio
-          </a>
-        </div>
-        <h1>
-          Privacy filter <span>sandbox.</span>
+        <h1 className="extension-headline" id="page-title">
+          <span className="headline-word">OpenAI privacy filter</span>
+          <span className="headline-accent">sandbox.</span>
         </h1>
         <p className="extension-copy">
           A focused Shiftbloom testing surface for{" "}

@@ -1,3 +1,5 @@
+import { SiteHeader } from "@/components/site-header";
+
 import { createPageMetadata } from "../seo";
 
 export const metadata = createPageMetadata({
@@ -35,6 +37,7 @@ const labels = [
 export default function DocsPage() {
   return (
     <main className="extension-shell docs-shell" id="main-content">
+      <SiteHeader />
       <section className="docs-hero">
         <div className="extension-topline" aria-label="Documentation context">
           <a className="studio-link" href="/">
