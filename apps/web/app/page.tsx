@@ -20,7 +20,7 @@ export default function Home() {
           <span className="headline-accent">sandbox.</span>
         </h1>
         <p className="extension-copy">
-          A focused Shiftbloom testing surface for{" "}
+          A focused testing surface for{" "}
           <a href="https://huggingface.co/openai/privacy-filter">openai/privacy-filter</a>, a
           privacy-detection model created by OpenAI. Paste sample text, choose a redaction mode, and
           inspect the model response without leaving the sandbox.
