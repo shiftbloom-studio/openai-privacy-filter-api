@@ -16,17 +16,17 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@eslint/js": "latest",
-    "@testing-library/jest-dom": "latest",
-    "@testing-library/react": "latest",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "eslint": "latest",
-    "eslint-plugin-react-hooks": "latest",
-    "jsdom": "latest",
-    "typescript": "latest",
-    "typescript-eslint": "latest",
-    "vitest": "latest"
+    "@eslint/js": "*",
+    "@testing-library/jest-dom": "*",
+    "@testing-library/react": "*",
+    "@types/node": "*",
+    "@types/react": "*",
+    "@types/react-dom": "*",
+    "eslint": "*",
+    "eslint-plugin-react-hooks": "*",
+    "jsdom": "*",
+    "typescript": "*",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "*"
   }
 }
