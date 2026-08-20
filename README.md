@@ -173,6 +173,8 @@ See [docs/api.md](docs/api.md) for the API contract.
 
 ## Configuration
 
+### Environment Variables Reference
+
 | Variable | Used by | Default | Description |
 | --- | --- | --- | --- |
 | `PRIVACY_FILTER_MODEL_ID` | API | `openai/privacy-filter` | Hugging Face model id reported by the service and used when no model path is set. |
@@ -185,6 +187,19 @@ See [docs/api.md](docs/api.md) for the API contract.
 | `PRIVACY_FILTER_TRUST_REMOTE_CODE` | API | `false` | Enables remote model code if a future revision requires it. |
 | `HF_HOME` | API | `.hf-cache` locally | Hugging Face cache directory. |
 | `PRIVACY_FILTER_API_URL` | web | `http://localhost:8000` | API base URL used by the Next.js server-side proxy. |
+
+### Process Mapping (`.env.example` Breakdown)
+
+| Process | Environment Variable | Sandbox Requirement | Purpose |
+| --- | --- | --- | --- |
+| **API (`apps/api`)** | `PRIVACY_FILTER_MODEL_ID` | Optional (default: `openai/privacy-filter`) | Model identifier reported in health and metadata. |
+| **API (`apps/api`)** | `PRIVACY_FILTER_MODEL_PATH` | Optional | Path to pre-downloaded offline model artifacts. |
+| **API (`apps/api`)** | `PRIVACY_FILTER_RUNTIME` | Optional (default: `local`) | Runtime environment tag returned by `/health`. |
+| **API (`apps/api`)** | `PRIVACY_FILTER_CORS_ORIGINS` | Optional (default: `localhost:3000`) | Browser CORS whitelist for direct calls. |
+| **API (`apps/api`)** | `PRIVACY_FILTER_INTERNAL_TOKEN` | Optional | Shared token checked in `X-Internal-Token` header. |
+| **API (`apps/api`)** | `HF_HOME` | Optional (default: `.hf-cache`) | Local directory for cached Hugging Face weights. |
+| **Web (`apps/web`)** | `PRIVACY_FILTER_API_URL` | **Required** for proxy route | Base URL pointing Next.js server proxy to FastAPI backend. |
+| **Web (`apps/web`)** | `PRIVACY_FILTER_INTERNAL_TOKEN` | Optional (must match API if set) | Shared token forwarded by proxy to authenticate against backend. |
 
 ## Verification
 
