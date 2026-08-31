@@ -326,7 +326,6 @@ disabled:
 
 On pushes to `main`, [deploy-aws.yml](.github/workflows/deploy-aws.yml) detects changed paths and
 deploys only the affected surface. It can also be run manually with `all`, `api`, `web`, or `auto`.
-The API service is never deployed from a push; deploy it deliberately with the `api` target.
 
 Forks should replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC
 role with their own infrastructure.
