@@ -4,6 +4,7 @@ ARG API_EXTRAS=inference
 WORKDIR /build
 
 COPY apps/api/pyproject.toml apps/api/pyproject.toml
+COPY apps/api/README.md apps/api/README.md
 COPY apps/api/src apps/api/src
 COPY README.md README.md
 
