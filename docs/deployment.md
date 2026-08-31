@@ -1,6 +1,43 @@
 # Deployment Notes
 
-The API has one ASGI application and one Lambda adapter. The model cache is runtime data and must stay outside source control.
+The sandbox has two runtimes behind one contract. Pick based on whether you have inference compute:
+
+| Runtime | Inference compute | Where text is processed | Notes |
+| --- | --- | --- | --- |
+| `browser` (default) | none | visitor's device | WebGPU, then WebGL, then WASM. Used by the Shiftbloom deployment. |
+| `server` | required | your API host | Next.js proxies `/api/filter` to FastAPI. |
+
+Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** — Next.js inlines `NEXT_PUBLIC_*` into
+the client bundle, so changing it requires a rebuild, not just a restart.
+
+## In-browser (WebGL/WebGPU) — the Shiftbloom deployment
+
+This is the default and requires no server-side compute, no model files, and no Python runtime. The
+`q4` ONNX variant of `openai/privacy-filter` is fetched from the Hugging Face CDN on first use and
+cached by the browser.
+
+```bash
+npm install
+npm --workspace apps/web run build
+npm --workspace apps/web run start
+```
+
+Build the container with the default (browser) runtime:
+
+```bash
+docker build -f infra/docker/web.Dockerfile -t privacy-filter-web .
+```
+
+Because inference is client-side:
+
+- Input text never leaves the visitor's device — there is no PII in transit or at rest server-side.
+- First load downloads a few hundred MB; subsequent loads use the browser cache.
+- WebGPU is fastest where supported. WebGL is the broad fallback. WASM keeps the sandbox usable with
+  no GPU backend, at reduced speed.
+- Browsers without WebGL2/WebGL (very old clients, some locked-down environments) cannot run the
+  model in-browser; those users should self-host the `server` runtime.
+
+Everything below documents the `server` runtime, which remains fully maintained for self-hosters.
 
 ## Local
 
@@ -15,7 +52,8 @@ Run the web sandbox separately:
 
 ```bash
 npm install
-PRIVACY_FILTER_API_URL=http://localhost:8000 npm --workspace apps/web run dev
+NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=server \
+  PRIVACY_FILTER_API_URL=http://localhost:8000 npm --workspace apps/web run dev
 ```
 
 ## Docker
@@ -23,6 +61,14 @@ PRIVACY_FILTER_API_URL=http://localhost:8000 npm --workspace apps/web run dev
 ```bash
 docker build -f infra/docker/api.Dockerfile -t privacy-filter-api .
 docker run --rm -p 8000:8000 -v privacy-filter-hf:/models/huggingface privacy-filter-api
+```
+
+To build the web image against the API instead of the browser runtime:
+
+```bash
+docker build -f infra/docker/web.Dockerfile \
+  --build-arg NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=server \
+  -t privacy-filter-web .
 ```
 
 To bake an already downloaded model into the API image, place the runtime files in
@@ -73,26 +119,38 @@ The handler wraps the same FastAPI app with `Mangum(app, lifespan="off")`. Use L
 
 ## AWS App Runner CI/CD
 
-The current AWS deployment uses App Runner services backed by private ECR repositories in
-`eu-central-1`:
+The App Runner services in `eu-central-1` are:
 
-- API service: `privacy-filter-api`
-- Web service: `privacy-filter-web`
-- API ECR repository: `privacy-filter-api`
-- Web ECR repository: `privacy-filter-web`
+- API service: `privacy-filter-api` (private ECR `privacy-filter-api`)
+- Web service: `privacy-filter-web` (private ECR `privacy-filter-web`)
 - Baked model artifacts bucket: `shiftbloom-privacy-filter-build-349744179866-eu-central-1`
 
-`.github/workflows/deploy-aws.yml` deploys automatically on pushes to `main` and can also be run
-manually from GitHub Actions. It detects changed paths and deploys only the surface that changed:
+`.github/workflows/deploy-aws.yml` deploys on pushes to `main` and can also be run manually from
+GitHub Actions. It detects changed paths and deploys only the surface that changed:
 
 - `apps/api/**`, `infra/docker/api.Dockerfile`, or `privacy-filter-model/**` deploy the API.
 - `apps/web/**`, `infra/docker/web.Dockerfile`, `package.json`, or `package-lock.json` deploy the web app.
 - `.dockerignore` deploys both because it affects both Docker builds.
 
-The API App Runner service is configured for offline model loading, so the workflow restores the
-model files from S3 into `privacy-filter-model/` before building the API image. Both jobs push a
-commit-SHA-tagged image and `latest`, then update the existing App Runner service to the SHA-tagged
-image while preserving the service's current runtime environment variables.
+### Shiftbloom deployment: web only, browser runtime
+
+Shiftbloom has **no server-side inference compute** (no AWS, Cloudflare, or other GPU/CPU inference
+host). The deployed sandbox therefore runs the `browser` runtime, and the App Runner API service is
+not part of the Shiftbloom deployment.
+
+Two consequences are enforced by the workflow:
+
+1. On `push` to `main`, the API service is never deployed automatically — only the web service is.
+   The API service can still be deployed deliberately with the `api` target for operators who have
+   provisioned compute.
+2. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
+   can select `browser` or `server`.
+
+The web service needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal token in
+browser mode.
+
+Forks should replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC
+role with their own infrastructure.
 
 GitHub Actions authenticates to AWS with OIDC through:
 
@@ -110,8 +168,12 @@ Target hostname: `privacy.shiftbloom.studio`.
 Recommended routing:
 
 - Point `privacy.shiftbloom.studio` to the deployed Next.js sandbox.
-- Keep API calls on `/api/filter`; the Next.js route handler proxies to `PRIVACY_FILTER_API_URL`.
-- Set the same `PRIVACY_FILTER_INTERNAL_TOKEN` on the API and the Next.js app so direct API requests are rejected unless they originate from the server-side proxy.
-- Disable Cloudflare caching for `/api/*`.
+- In `browser` mode (Shiftbloom default) there is no `/api/filter` traffic — inference happens in the
+  visitor's browser. Allow caching for `/_next/static/*` and for the Hugging Face CDN model files the
+  browser fetches.
+- In `server` mode, keep API calls on `/api/filter`; the Next.js route handler proxies to
+  `PRIVACY_FILTER_API_URL`. Set the same `PRIVACY_FILTER_INTERNAL_TOKEN` on the API and the Next.js
+  app so direct API requests are rejected unless they originate from the server-side proxy, and
+  disable Cloudflare caching for `/api/*`.
 - Allow static asset caching for `/_next/static/*`.
 - Keep TLS mode strict and let the deployment platform manage origin certificates.
