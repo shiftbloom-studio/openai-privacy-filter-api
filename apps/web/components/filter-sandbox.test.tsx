@@ -10,8 +10,21 @@ const runtimeConfig = vi.hoisted(() => ({
   getFilterRuntime: vi.fn<() => "server" | "browser">()
 }));
 
+const consent = vi.hoisted(() => ({
+  hasStoredConsent: vi.fn<() => boolean>(),
+  storeConsent: vi.fn()
+}));
+
 vi.mock("@/lib/browser-engine", () => browserEngine);
 vi.mock("@/lib/runtime-config", () => runtimeConfig);
+vi.mock("@/lib/consent", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/consent")>();
+  return {
+    ...actual,
+    hasStoredConsent: consent.hasStoredConsent,
+    storeConsent: consent.storeConsent
+  };
+});
 
 const { FilterSandbox } = await import("./filter-sandbox");
 
@@ -29,6 +42,7 @@ describe("FilterSandbox", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     runtimeConfig.getFilterRuntime.mockReturnValue("server");
+    consent.hasStoredConsent.mockReturnValue(true);
     browserEngine.loadBrowserEngine.mockResolvedValue({});
     browserEngine.detectSpansInBrowser.mockResolvedValue(BROWSER_SPANS);
   });
@@ -98,6 +112,15 @@ describe("FilterSandbox", () => {
         await screen.findByText("Privacy filter API is unreachable.")
       ).toBeVisible();
     });
+
+    it("does not ask for consent in the server runtime", async () => {
+      vi.stubGlobal("fetch", vi.fn());
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 
   describe("browser runtime", () => {
@@ -106,6 +129,7 @@ describe("FilterSandbox", () => {
     });
 
     it("runs the model in-browser and never calls the server proxy", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
       const fetchMock = vi.fn();
       vi.stubGlobal("fetch", fetchMock);
       render(<FilterSandbox />);
@@ -118,6 +142,7 @@ describe("FilterSandbox", () => {
     });
 
     it("renders redacted output for the sample text", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
       vi.stubGlobal("fetch", vi.fn());
       render(<FilterSandbox />);
 
@@ -127,6 +152,7 @@ describe("FilterSandbox", () => {
     });
 
     it("reports a failure when the in-browser model throws", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
       vi.stubGlobal("fetch", vi.fn());
       browserEngine.detectSpansInBrowser.mockRejectedValue(new Error("Model could not be loaded."));
       render(<FilterSandbox />);
@@ -137,6 +163,7 @@ describe("FilterSandbox", () => {
     });
 
     it("validates empty input before invoking the browser model", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
       vi.stubGlobal("fetch", vi.fn());
       render(<FilterSandbox />);
 
@@ -147,6 +174,92 @@ describe("FilterSandbox", () => {
         await screen.findByText("Enter text before running the privacy filter.")
       ).toBeVisible();
       expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("consent gate", () => {
+    beforeEach(() => {
+      runtimeConfig.getFilterRuntime.mockReturnValue("browser");
+      consent.hasStoredConsent.mockReturnValue(false);
+    });
+
+    it("does not load the model on mount without consent", () => {
+      render(<FilterSandbox />);
+
+      expect(browserEngine.loadBrowserEngine).not.toHaveBeenCalled();
+      expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+    });
+
+    it("asks for consent instead of filtering when nothing is stored", async () => {
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+
+      expect(await screen.findByRole("dialog")).toBeInTheDocument();
+      expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+    });
+
+    it("discloses the download size and local execution", async () => {
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+
+      const dialog = await screen.findByRole("dialog");
+      expect(dialog).toHaveTextContent(/900 MB/);
+      expect(dialog).toHaveTextContent(/stays on your device/i);
+    });
+
+    it("starts the download and runs the filter after consent", async () => {
+      consent.hasStoredConsent.mockReturnValue(false);
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+      fireEvent.click(await screen.findByRole("button", { name: /Download and run locally/i }));
+
+      await waitFor(() => expect(browserEngine.detectSpansInBrowser).toHaveBeenCalled());
+      expect(consent.storeConsent).toHaveBeenCalled();
+      expect(await screen.findByText("private_email")).toBeVisible();
+    });
+
+    it("downloads nothing when the visitor declines", async () => {
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Not now" }));
+
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      );
+      expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+      expect(consent.storeConsent).not.toHaveBeenCalled();
+    });
+
+    it("closes on Escape without downloading", async () => {
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+      await screen.findByRole("dialog");
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      );
+      expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+      expect(consent.storeConsent).not.toHaveBeenCalled();
+    });
+
+    it("re-asks on the next attempt after declining", async () => {
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Not now" }));
+
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+      expect(await screen.findByRole("dialog")).toBeInTheDocument();
     });
   });
 });

@@ -31,7 +31,10 @@ docker build -f infra/docker/web.Dockerfile -t privacy-filter-web .
 Because inference is client-side:
 
 - Input text never leaves the visitor's device — there is no PII in transit or at rest server-side.
-- First load downloads a few hundred MB; subsequent loads use the browser cache.
+- The download is about 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer). The sandbox
+  shows a consent dialog before fetching any of it; nothing is downloaded on page load. Consent is
+  remembered locally, and declining is a deferral — the visitor can accept on a later attempt.
+- Once downloaded, the weights stay in the browser cache, so repeat visits are fast.
 - WebGPU is fastest where supported. WebGL is the broad fallback. WASM keeps the sandbox usable with
   no GPU backend, at reduced speed.
 - Browsers without WebGL2/WebGL (very old clients, some locked-down environments) cannot run the

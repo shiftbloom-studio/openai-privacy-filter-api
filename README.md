@@ -31,7 +31,8 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
 - `browser` (default): the model runs in the visitor's browser through
   [Transformers.js](https://huggingface.co/docs/transformers.js), using WebGPU where available and
   falling back to WebGL and then WASM. No inference compute is required and input text never leaves
-  the device.
+  the device. Because the weights are about 900 MB, the sandbox asks for consent before downloading
+  anything — nothing is fetched until the visitor agrees.
 - `server`: the Next.js server route proxies to the Python FastAPI service.
 
 ```mermaid
@@ -100,8 +101,9 @@ npm install
 npm --workspace apps/web run dev
 ```
 
-Open `http://localhost:3000`. The model downloads into the browser cache on first use (a few hundred
-MB for the `q4` variant) and then runs locally.
+Open `http://localhost:3000`. Before the first filter runs, the sandbox asks for consent and then
+downloads the model weights — roughly 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer)
+— which the browser caches for later visits.
 
 ### Server runtime
 
