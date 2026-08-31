@@ -189,8 +189,11 @@ export function activeBrowserDevice(): string | null {
  * specifies. Falls back to the pipeline's own aggregation when the raw logits
  * are not exposed, so a Transformers.js upgrade cannot silently break detection.
  */
-export async function detectSpansInBrowser(text: string): Promise<PrivacySpan[]> {
-  const classifier = await loadBrowserEngine();
+export async function detectSpansInBrowser(
+  text: string,
+  options: BrowserEngineOptions = {}
+): Promise<PrivacySpan[]> {
+  const classifier = await loadBrowserEngine(options);
 
   const [result] = (await (classifier as (
     batch: string[],

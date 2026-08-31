@@ -2,7 +2,9 @@
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 
+import { ConsentModal } from "@/components/consent-modal";
 import { detectSpansInBrowser, loadBrowserEngine, type LoadProgress } from "@/lib/browser-engine";
+import { hasStoredConsent, storeConsent } from "@/lib/consent";
 import {
   FILTER_MODES,
   FilterMode,
@@ -19,6 +21,13 @@ const EXAMPLE_TEXT =
 
 type Runtime = "server" | "browser";
 
+type PendingRequest = {
+  text: string;
+  mode: FilterMode;
+  mask_token: string;
+  include_spans: boolean;
+};
+
 export function FilterSandbox(): ReactNode {
   const [text, setText] = useState(EXAMPLE_TEXT);
   const [mode, setMode] = useState<FilterMode>("mask");
@@ -29,10 +38,20 @@ export function FilterSandbox(): ReactNode {
   const [isLoading, setIsLoading] = useState(false);
   const [runtime] = useState<Runtime>(getFilterRuntime);
   const [modelProgress, setModelProgress] = useState<LoadProgress | null>(null);
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<PendingRequest | null>(null);
+  /* The model is roughly 900 MB, so nothing is fetched until the visitor has
+   * agreed. In particular there is no download on mount. */
+  const [consentResolved, setConsentResolved] = useState(() =>
+    typeof window === "undefined" ? false : hasStoredConsent()
+  );
 
-  // Warm the browser model on mount so the first filter is not a long stall.
+  /**
+   * Warm the model only after consent, and only once a filter has actually been
+   * requested. Consent alone does not start a 900 MB download.
+   */
   useEffect(() => {
-    if (runtime !== "browser") {
+    if (runtime !== "browser" || !consentResolved || modelProgress) {
       return;
     }
     let active = true;
@@ -50,9 +69,45 @@ export function FilterSandbox(): ReactNode {
     return () => {
       active = false;
     };
-  }, [runtime]);
+  }, [runtime, consentResolved, modelProgress]);
 
-  async function submitFilter(event: FormEvent<HTMLFormElement>) {
+  function acceptConsent() {
+    storeConsent();
+    setConsentResolved(true);
+    setConsentOpen(false);
+    const request = pendingRequest;
+    setPendingRequest(null);
+    if (request) {
+      void executeFilter(request);
+    }
+  }
+
+  function declineConsent() {
+    setConsentOpen(false);
+    setPendingRequest(null);
+  }
+
+  async function executeFilter(request: PendingRequest) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      setResult(
+        await runFilter(request, runtime, (progress) => {
+          if (progress.stage === "loading") {
+            setModelProgress(progress);
+          }
+        })
+      );
+    } catch (caughtError) {
+      setResult(null);
+      setError(caughtError instanceof Error ? caughtError.message : "Request failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function submitFilter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const request = {
       text,
@@ -68,17 +123,14 @@ export function FilterSandbox(): ReactNode {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      setResult(await runFilter(request, runtime));
-    } catch (caughtError) {
-      setResult(null);
-      setError(caughtError instanceof Error ? caughtError.message : "Request failed.");
-    } finally {
-      setIsLoading(false);
+    // Ask before the first download, then remember the answer.
+    if (runtime === "browser" && !hasStoredConsent()) {
+      setPendingRequest(request);
+      setConsentOpen(true);
+      return;
     }
+
+    void executeFilter(request);
   }
 
   const browserBusy =
@@ -200,21 +252,18 @@ export function FilterSandbox(): ReactNode {
           )}
         </div>
       </form>
+      <ConsentModal onAccept={acceptConsent} onDecline={declineConsent} open={consentOpen} />
     </section>
   );
 }
 
 async function runFilter(
-  request: {
-    text: string;
-    mode: FilterMode;
-    mask_token: string;
-    include_spans: boolean;
-  },
-  runtime: Runtime
+  request: PendingRequest,
+  runtime: Runtime,
+  onProgress?: (progress: LoadProgress) => void
 ): Promise<FilterResponse> {
   if (runtime === "browser") {
-    const spans = await detectSpansInBrowser(request.text);
+    const spans = await detectSpansInBrowser(request.text, { onProgress });
     return buildResponse(request, spans);
   }
 
