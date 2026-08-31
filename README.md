@@ -1,7 +1,6 @@
 # OpenAI Privacy Filter API
 
 [![CI](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/ci.yml/badge.svg)](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/ci.yml)
-[![Deploy AWS](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/deploy-aws.yml/badge.svg)](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/deploy-aws.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 A small, inspectable FastAPI service and Next.js sandbox for running
@@ -20,7 +19,9 @@ a production policy engine, classifier benchmark, or complete data governance sy
 - Redaction modes: `mask`, `remove`, and `annotate`.
 - Optional internal-token protection between the web proxy and API.
 - Docker images for the API and web app.
-- AWS App Runner deployment workflow with path-aware API/web redeploys.
+- Consent gate before the ~900 MB in-browser model download.
+- Vercel configuration for the no-compute browser-runtime deployment.
+- AWS App Runner workflow, retained for self-hosters with inference compute.
 - Unit tests for schemas, redaction, API behavior, Lambda adapter, web proxy, and UI behavior.
 - Model files are kept outside source control and can be restored from deployment artifacts.
 
@@ -285,12 +286,36 @@ Do not commit model files to the repository.
 ## Deployment
 
 The project can run anywhere that supports Docker containers. The included deployment notes cover
-Docker, AWS Lambda container images, Google Cloud Run, Cloudflare routing, and the current AWS App
-Runner setup. See [docs/deployment.md](docs/deployment.md).
+Vercel, Docker, AWS Lambda container images, Google Cloud Run, Cloudflare routing, and the AWS App
+Runner setup that remains available to self-hosters. See [docs/deployment.md](docs/deployment.md).
 
-### Shiftbloom AWS App Runner
+### Shiftbloom deployment (Vercel)
 
-This repository includes a GitHub Actions workflow for the current Shiftbloom deployment:
+`privacy.shiftbloom.studio` is deployed on **Vercel** and runs the **`browser` runtime**: the model
+executes in the visitor's browser, so no server-side inference compute is required or provisioned.
+
+The repository ships a [vercel.json](vercel.json) for this setup. Configure the Vercel project with:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `apps/web` |
+| Framework Preset | Next.js |
+| Build Command | `cd ../.. && npm --workspace apps/web run build` |
+| Install Command | `cd ../.. && npm install` |
+| Output Directory | `.next` |
+
+`NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` is pinned to `browser` in `vercel.json`, so no environment
+variable is strictly required. It is inlined at build time, so changing it needs a redeploy rather
+than a restart.
+
+Because the weights are roughly 900 MB, the sandbox asks for consent before downloading anything.
+Nothing is fetched on page load.
+
+### AWS App Runner (available to self-hosters)
+
+The repository also includes a GitHub Actions workflow for App Runner, retained for operators who
+have provisioned inference compute. It is **not** part of the Shiftbloom deployment and is currently
+disabled:
 
 - API App Runner service: `privacy-filter-api`
 - Web App Runner service: `privacy-filter-web`
@@ -300,6 +325,7 @@ This repository includes a GitHub Actions workflow for the current Shiftbloom de
 
 On pushes to `main`, [deploy-aws.yml](.github/workflows/deploy-aws.yml) detects changed paths and
 deploys only the affected surface. It can also be run manually with `all`, `api`, `web`, or `auto`.
+The API service is never deployed from a push; deploy it deliberately with the `api` target.
 
 Forks should replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC
 role with their own infrastructure.
