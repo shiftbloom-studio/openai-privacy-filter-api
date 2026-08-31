@@ -13,7 +13,7 @@ pytest tests/
 # Frontend Web tests & typechecks
 cd ../..
 npm run lint
-npm run check
+npm run typecheck
 ```
 
 ## Guidelines

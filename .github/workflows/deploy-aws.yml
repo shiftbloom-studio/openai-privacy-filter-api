@@ -33,11 +33,10 @@ concurrency:
   group: aws-app-runner-${{ github.ref }}
   cancel-in-progress: false
 
-# Shiftbloom runs the sandbox entirely in the browser: no server-side inference
-# compute is provisioned, so the App Runner API service is not deployed here.
-# The API image, Lambda adapter, and Cloud Run path remain supported for
-# self-hosters; deploy them explicitly with the `api` target once you have
-# provisioned inference compute.
+# Shiftbloom's own deployment is Vercel with in-browser inference, so this
+# workflow is disabled for shiftbloom-studio. It is kept fully functional for
+# forks: enable it, replace the AWS account/ARNs/bucket below with your own,
+# and pushes to main deploy the changed surfaces (API and/or web) path-aware.
 
 env:
   AWS_REGION: eu-central-1
@@ -100,21 +99,13 @@ jobs:
               while IFS= read -r file; do
                 case "$file" in
                   apps/api/*|infra/docker/api.Dockerfile|privacy-filter-model/*)
-                    # The Shiftbloom deployment has no server-side inference
-                    # compute, so the API service is never deployed from a push.
-                    # Operators who have provisioned compute can deploy it
-                    # deliberately with the `api` target.
-                    if [[ "$EVENT_NAME" != "push" ]]; then
-                      api=true
-                    fi
+                    api=true
                     ;;
                   apps/web/*|infra/docker/web.Dockerfile|package.json|package-lock.json)
                     web=true
                     ;;
                   .dockerignore)
-                    if [[ "$EVENT_NAME" != "push" ]]; then
-                      api=true
-                    fi
+                    api=true
                     web=true
                     ;;
                 esac
