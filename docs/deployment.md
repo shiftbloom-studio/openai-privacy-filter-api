@@ -36,7 +36,7 @@ if you also deploy the API and set `PRIVACY_FILTER_API_URL`.
 In browser mode the deployment needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal
 token. Visitors download roughly 900 MB once, behind a consent dialog, and the browser caches it.
 
-## In-browser (WebGL/WebGPU) — the Shiftbloom deployment
+## In-browser (WebGL/WebGPU) — the Shiftbloom deployment on Vercel
 
 This is the default and requires no server-side compute, no model files, and no Python runtime. The
 `q4` ONNX variant of `openai/privacy-filter` is fetched from the Hugging Face CDN on first use and
@@ -66,7 +66,8 @@ Because inference is client-side:
 - Browsers without WebGL2/WebGL (very old clients, some locked-down environments) cannot run the
   model in-browser; those users should self-host the `server` runtime.
 
-Everything below documents the `server` runtime, which remains fully maintained for self-hosters.
+Everything from here to the Cloudflare section documents the `server` runtime, which remains fully
+maintained for self-hosters.
 
 ## Local
 
@@ -155,6 +156,9 @@ compute and want to run the `server` runtime:
 - API service: `privacy-filter-api` (private ECR `privacy-filter-api`)
 - Web service: `privacy-filter-web` (private ECR `privacy-filter-web`)
 - Baked model artifacts bucket: `shiftbloom-privacy-filter-build-349744179866-eu-central-1`
+
+> This workflow is disabled in GitHub Actions. It has not run since 2026-08-18 and is retained only
+> for self-hosters who run the `server` runtime.
 
 `.github/workflows/deploy-aws.yml` deploys on pushes to `main` and can also be run manually from
 GitHub Actions. It detects changed paths and deploys only the surface that changed:

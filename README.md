@@ -50,8 +50,8 @@ flowchart LR
 Both runtimes share the same request and response contract and the same redaction semantics, so the
 sandbox behaves identically either way.
 
-The Shiftbloom deployment (`privacy.shiftbloom.studio`) runs the `browser` runtime because no
-server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
+The Shiftbloom deployment on Vercel (`privacy.shiftbloom.studio`) runs the `browser` runtime because
+no server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
 maintained for self-hosters — they are simply not deployed for Shiftbloom. See
 [docs/deployment.md](docs/deployment.md).
 
@@ -76,7 +76,8 @@ docs/       API contract and deployment notes
 - Node.js 24 or newer
 - npm
 - Docker, optional but recommended for deployment parity
-- AWS CLI, only for managing the included Shiftbloom AWS deployment
+- AWS CLI, optional: only for the retained App Runner and Lambda paths. Not needed for the Vercel
+  deployment or for local browser-runtime development.
 
 The real model runtime requires `torch` and `transformers`. Unit tests do not download or load the
 model unless the explicit real-model smoke test is enabled.
