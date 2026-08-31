@@ -16,6 +16,7 @@ a production policy engine, classifier benchmark, or complete data governance sy
 
 - FastAPI API with `/health` and `/v1/filter`.
 - Next.js sandbox UI for testing sample text and inspecting detected spans.
+- Two runtimes behind one contract: in-browser (WebGPU/WebGL/WASM) and server-side (FastAPI).
 - Redaction modes: `mask`, `remove`, and `annotate`.
 - Optional internal-token protection between the web proxy and API.
 - Docker images for the API and web app.
@@ -25,21 +26,37 @@ a production policy engine, classifier benchmark, or complete data governance sy
 
 ## Architecture
 
+The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME`:
+
+- `browser` (default): the model runs in the visitor's browser through
+  [Transformers.js](https://huggingface.co/docs/transformers.js), using WebGPU where available and
+  falling back to WebGL and then WASM. No inference compute is required and input text never leaves
+  the device. Because the weights are about 900 MB, the sandbox asks for consent before downloading
+  anything — nothing is fetched until the visitor agrees.
+- `server`: the Next.js server route proxies to the Python FastAPI service.
+
 ```mermaid
 flowchart LR
   User["Browser"] --> Web["Next.js sandbox"]
-  Web --> Proxy["/api/filter server route"]
+  Web -->|"runtime: browser"| InBrowser["Transformers.js WebGPU/WebGL/WASM"]
+  InBrowser --> RedactionB["Redaction logic"]
+  Web -->|"runtime: server"| Proxy["/api/filter server route"]
   Proxy --> API["FastAPI /v1/filter"]
   API --> Model["openai/privacy-filter"]
-  API --> Redaction["Redaction logic"]
-  Redaction --> API
-  API --> Proxy
-  Proxy --> Web
+  API --> RedactionS["Redaction logic"]
 ```
 
-The browser never calls the model API directly. The Next.js app proxies requests through its
-server-side route, optionally adding `PRIVACY_FILTER_INTERNAL_TOKEN` so the API can reject direct
-public traffic.
+Both runtimes share the same request and response contract and the same redaction semantics, so the
+sandbox behaves identically either way.
+
+The Shiftbloom deployment (`privacy.shiftbloom.studio`) runs the `browser` runtime because no
+server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
+maintained for self-hosters — they are simply not deployed for Shiftbloom. See
+[docs/deployment.md](docs/deployment.md).
+
+In `server` mode the browser never calls the model API directly. The Next.js app proxies requests
+through its server-side route, optionally adding `PRIVACY_FILTER_INTERNAL_TOKEN` so the API can
+reject direct public traffic.
 
 ## Repository Layout
 
@@ -63,6 +80,8 @@ docs/       API contract and deployment notes
 The real model runtime requires `torch` and `transformers`. Unit tests do not download or load the
 model unless the explicit real-model smoke test is enabled.
 
+Running the sandbox in the browser requires no Python inference dependencies at all.
+
 ## Quick Start
 
 Clone the repo and copy the example environment:
@@ -72,6 +91,21 @@ git clone https://github.com/shiftbloom-studio/openai-privacy-filter-api.git
 cd openai-privacy-filter-api
 cp .env.example .env
 ```
+
+### Browser runtime (default, no inference compute)
+
+Install web dependencies and start the sandbox:
+
+```bash
+npm install
+npm --workspace apps/web run dev
+```
+
+Open `http://localhost:3000`. Before the first filter runs, the sandbox asks for consent and then
+downloads the model weights — roughly 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer)
+— which the browser caches for later visits.
+
+### Server runtime
 
 Start the API without inference dependencies:
 
@@ -86,7 +120,8 @@ Start the web sandbox in another shell:
 
 ```bash
 npm install
-PRIVACY_FILTER_API_URL=http://localhost:8000 npm --workspace apps/web run dev
+NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=server \
+  PRIVACY_FILTER_API_URL=http://localhost:8000 npm --workspace apps/web run dev
 ```
 
 Open `http://localhost:3000`.
@@ -184,7 +219,8 @@ See [docs/api.md](docs/api.md) for the API contract.
 | `PRIVACY_FILTER_REVISION` | API | empty | Optional Hugging Face model revision. |
 | `PRIVACY_FILTER_TRUST_REMOTE_CODE` | API | `false` | Enables remote model code if a future revision requires it. |
 | `HF_HOME` | API | `.hf-cache` locally | Hugging Face cache directory. |
-| `PRIVACY_FILTER_API_URL` | web | `http://localhost:8000` | API base URL used by the Next.js server-side proxy. |
+| `PRIVACY_FILTER_API_URL` | web | `http://localhost:8000` | API base URL used by the Next.js server-side proxy. Only used in `server` runtime. |
+| `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` | web | `browser` | `browser` runs the model in-browser (WebGPU/WebGL/WASM). `server` proxies to the FastAPI service. |
 
 ## Verification
 

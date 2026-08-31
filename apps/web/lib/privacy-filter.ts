@@ -66,3 +66,35 @@ export function spanKey(span: PrivacySpan): string {
   return `${span.label}-${span.start}-${span.end}-${span.score}`;
 }
 
+/**
+ * Apply a redaction mode to text. Mirrors the Python `apply_redaction` helper so
+ * the browser and server runtimes produce byte-identical output for the same
+ * spans. Spans are expected to already be normalized (non-overlapping, sorted).
+ */
+export function applyRedaction(
+  text: string,
+  spans: readonly PrivacySpan[],
+  mode: FilterMode,
+  maskToken: string
+): [string, PrivacySpan[]] {
+  const pieces: string[] = [];
+  let cursor = 0;
+
+  for (const span of spans) {
+    pieces.push(text.slice(cursor, span.start));
+
+    if (mode === "remove") {
+      pieces.push("");
+    } else if (mode === "annotate") {
+      pieces.push(`[${span.label}:${text.slice(span.start, span.end)}]`);
+    } else {
+      pieces.push(maskToken);
+    }
+
+    cursor = span.end;
+  }
+
+  pieces.push(text.slice(cursor));
+  return [pieces.join(""), [...spans]];
+}
+
