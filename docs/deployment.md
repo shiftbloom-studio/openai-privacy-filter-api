@@ -173,12 +173,12 @@ Shiftbloom's production deployment is **Vercel**, not App Runner — see
 [Vercel — the Shiftbloom deployment](#vercel--the-shiftbloom-deployment). There is no server-side
 inference compute, so the App Runner API service is not part of it and the workflow is disabled.
 
-If you enable this workflow for your own infrastructure:
+If you enable this workflow for your own fork:
 
-1. On `push` to `main`, the API service is never deployed automatically — only the web service is.
-   The API service can still be deployed deliberately with the `api` target once you have
-   provisioned compute.
-2. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
+1. Replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC role.
+2. Pushes to `main` then deploy the changed surfaces path-aware — API changes deploy the API
+   (App Runner; the same image works on Lambda via the Mangum adapter), web changes deploy the web.
+3. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
    can select `browser` or `server`.
 
 The web service needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal token in
