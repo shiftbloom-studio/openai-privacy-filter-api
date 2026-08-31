@@ -10,6 +10,32 @@ The sandbox has two runtimes behind one contract. Pick based on whether you have
 Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** — Next.js inlines `NEXT_PUBLIC_*` into
 the client bundle, so changing it requires a rebuild, not just a restart.
 
+## Vercel — the Shiftbloom deployment
+
+`privacy.shiftbloom.studio` runs on Vercel with the `browser` runtime, so no inference compute is
+provisioned anywhere.
+
+Set **Root Directory** to `apps/web`. Dependencies are hoisted to the monorepo root by npm
+workspaces, so Vercel's default `npm install` would find no lockfile inside `apps/web`. The shipped
+[vercel.json](vercel.json) overrides both commands:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `apps/web` |
+| Framework Preset | Next.js |
+| Install Command | `cd ../.. && npm install` |
+| Build Command | `cd ../.. && npm --workspace apps/web run build` |
+| Output Directory | `.next` |
+
+Do not use `npm --prefix ../..` for the build: it resolves dependencies but does not change the
+workspace root, so `--workspace apps/web` fails with `No workspaces found`.
+
+`NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` is pinned to `browser` in `vercel.json`. Set it to `server` only
+if you also deploy the API and set `PRIVACY_FILTER_API_URL`.
+
+In browser mode the deployment needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal
+token. Visitors download roughly 900 MB once, behind a consent dialog, and the browser caches it.
+
 ## In-browser (WebGL/WebGPU) — the Shiftbloom deployment
 
 This is the default and requires no server-side compute, no model files, and no Python runtime. The
@@ -120,9 +146,11 @@ privacy_filter_api.lambda_handler.handler
 
 The handler wraps the same FastAPI app with `Mangum(app, lifespan="off")`. Use Lambda Function URLs or API Gateway HTTP API, allocate enough memory for model load, and expect cold starts unless using provisioned concurrency.
 
-## AWS App Runner CI/CD
+## AWS App Runner (self-hosters only)
 
-The App Runner services in `eu-central-1` are:
+The App Runner services in `eu-central-1` are **not** part of the Shiftbloom deployment, and the
+workflow is currently disabled. They are retained for operators who have provisioned inference
+compute and want to run the `server` runtime:
 
 - API service: `privacy-filter-api` (private ECR `privacy-filter-api`)
 - Web service: `privacy-filter-web` (private ECR `privacy-filter-web`)
@@ -135,16 +163,16 @@ GitHub Actions. It detects changed paths and deploys only the surface that chang
 - `apps/web/**`, `infra/docker/web.Dockerfile`, `package.json`, or `package-lock.json` deploy the web app.
 - `.dockerignore` deploys both because it affects both Docker builds.
 
-### Shiftbloom deployment: web only, browser runtime
+### Relationship to the Shiftbloom deployment
 
-Shiftbloom has **no server-side inference compute** (no AWS, Cloudflare, or other GPU/CPU inference
-host). The deployed sandbox therefore runs the `browser` runtime, and the App Runner API service is
-not part of the Shiftbloom deployment.
+Shiftbloom's production deployment is **Vercel**, not App Runner — see
+[Vercel — the Shiftbloom deployment](#vercel--the-shiftbloom-deployment). There is no server-side
+inference compute, so the App Runner API service is not part of it and the workflow is disabled.
 
-Two consequences are enforced by the workflow:
+If you enable this workflow for your own infrastructure:
 
 1. On `push` to `main`, the API service is never deployed automatically — only the web service is.
-   The API service can still be deployed deliberately with the `api` target for operators who have
+   The API service can still be deployed deliberately with the `api` target once you have
    provisioned compute.
 2. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
    can select `browser` or `server`.
@@ -164,7 +192,11 @@ arn:aws:iam::349744179866:role/github-actions-openai-privacy-filter-deploy
 The role trust policy is restricted to `shiftbloom-studio/openai-privacy-filter-api` on `main`.
 No long-lived AWS access keys are required in GitHub secrets.
 
-## Cloudflare
+## Cloudflare (optional)
+
+Cloudflare is **not** required for the Shiftbloom deployment — Vercel serves
+`privacy.shiftbloom.studio` directly. This section applies only if you choose to put Cloudflare in
+front of your own deployment.
 
 Target hostname: `privacy.shiftbloom.studio`.
 
