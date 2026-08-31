@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npm --workspace apps/web run build",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME": "browser"
+  }
+}

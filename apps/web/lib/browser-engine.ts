@@ -126,7 +126,7 @@ export function loadBrowserEngine(options: BrowserEngineOptions = {}): Promise<T
 
   const { onProgress } = options;
 
-  pipelinePromise = (async () => {
+  const load = async (): Promise<TokenClassifier> => {
     onProgress?.({ stage: "loading", percent: 0, detail: "loading runtime" });
 
     const pipeline = await loadPipelineFactory();
@@ -156,14 +156,18 @@ export function loadBrowserEngine(options: BrowserEngineOptions = {}): Promise<T
         return classifier;
       } catch (error) {
         lastError = error;
-        pipelinePromise = null;
+        // Keep the shared promise until the chain is exhausted: a device that
+        // fails partway does not mean the load is finished, and clearing the
+        // slot here would let a concurrent caller start a second 900 MB fetch.
       }
     }
 
-    pipelinePromise = null;
     onProgress?.({ stage: "error", percent: null, detail: "model unavailable" });
     throw lastError instanceof Error ? lastError : new Error("Model could not be loaded.");
-  })().catch((error: unknown) => {
+  };
+
+  pipelinePromise = load().catch((error: unknown) => {
+    // Only a terminal failure clears the slot, so the next attempt can retry.
     pipelinePromise = null;
     onProgress?.({ stage: "error", percent: null, detail: "model unavailable" });
     throw error;
