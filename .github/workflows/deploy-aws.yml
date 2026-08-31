@@ -16,6 +16,14 @@ on:
           - api
           - web
           - auto
+      runtime:
+        description: Web runtime to build. The Shiftbloom deployment uses browser.
+        required: true
+        default: browser
+        type: choice
+        options:
+          - browser
+          - server
 
 permissions:
   contents: read
@@ -24,6 +32,12 @@ permissions:
 concurrency:
   group: aws-app-runner-${{ github.ref }}
   cancel-in-progress: false
+
+# Shiftbloom runs the sandbox entirely in the browser: no server-side inference
+# compute is provisioned, so the App Runner API service is not deployed here.
+# The API image, Lambda adapter, and Cloud Run path remain supported for
+# self-hosters; deploy them explicitly with the `api` target once you have
+# provisioned inference compute.
 
 env:
   AWS_REGION: eu-central-1
@@ -86,13 +100,21 @@ jobs:
               while IFS= read -r file; do
                 case "$file" in
                   apps/api/*|infra/docker/api.Dockerfile|privacy-filter-model/*)
-                    api=true
+                    # The Shiftbloom deployment has no server-side inference
+                    # compute, so the API service is never deployed from a push.
+                    # Operators who have provisioned compute can deploy it
+                    # deliberately with the `api` target.
+                    if [[ "$EVENT_NAME" != "push" ]]; then
+                      api=true
+                    fi
                     ;;
                   apps/web/*|infra/docker/web.Dockerfile|package.json|package-lock.json)
                     web=true
                     ;;
                   .dockerignore)
-                    api=true
+                    if [[ "$EVENT_NAME" != "push" ]]; then
+                      api=true
+                    fi
                     web=true
                     ;;
                 esac
@@ -203,6 +225,8 @@ jobs:
         run: npm --workspace apps/web run test
 
       - name: Build web
+        env:
+          NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime || 'browser' }}
         run: npm --workspace apps/web run build
 
       - name: Configure AWS credentials
