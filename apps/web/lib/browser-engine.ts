@@ -45,8 +45,6 @@ export type BrowserEngineOptions = {
   preferredDevice?: string;
 };
 
-const MODULE_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0";
-
 let pipelinePromise: Promise<TokenClassifier> | null = null;
 let activeDevice: string | null = null;
 
@@ -62,7 +60,12 @@ function toPercent(event: ProgressEvent): number | null {
 }
 
 async function loadPipelineFactory(): Promise<PipelineFactory> {
-  const module = (await import(/* webpackIgnore: true */ MODULE_URL)) as {
+  /* Bundled from the npm package rather than imported from a CDN at runtime.
+   * The previous dynamic https import of the jsDelivr bundle downloaded fine
+   * (HTTP 200) but never resolved as an ES module in the production build,
+   * leaving the UI stuck at "loading runtime". The dynamic import below still
+   * code-splits the library out of the initial page bundle. */
+  const module = (await import("@huggingface/transformers")) as unknown as {
     pipeline?: PipelineFactory;
     env?: Record<string, unknown>;
   };
@@ -71,8 +74,8 @@ async function loadPipelineFactory(): Promise<PipelineFactory> {
     throw new Error("Transformers.js pipeline is unavailable.");
   }
 
-  // Keep model weights in the browser cache so repeat visits do not re-download
-  // ~800 MB. Served over the same origin policy as the page itself.
+  // Model weights come from the Hugging Face CDN and stay in the browser cache
+  // so repeat visits do not re-download ~900 MB.
   if (module.env) {
     module.env.allowLocalModels = false;
   }
