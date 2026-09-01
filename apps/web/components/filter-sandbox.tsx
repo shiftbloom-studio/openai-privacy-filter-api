@@ -17,7 +17,7 @@ import {
 import { getFilterRuntime } from "@/lib/runtime-config";
 
 const EXAMPLE_TEXT =
-  "My name is Alice Smith, my email is alice@example.com, and my project key is «redacted:sk-…».";
+  "My name is Alice Smith, my email is alice@example.com, and I live in Berlin.";
 
 type Runtime = "server" | "browser";
 
