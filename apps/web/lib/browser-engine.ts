@@ -1,20 +1,35 @@
 import type { PrivacySpan } from "./privacy-filter";
 import {
   BROWSER_MODEL_ID,
-  ID_TO_LABEL,
   IGNORE_LABELS,
-  decodeBIOESToSpans,
-  normalizeSpans
+  normalizeSpans,
+  stripBoundary
 } from "./privacy-filter-browser";
 import { BROWSER_DEFAULT_DTYPE, BROWSER_DEVICE_PREFERENCE } from "./runtime-config";
 
-type TokenClassificationOutput = {
-  logits: { dims: readonly number[]; data: Float32Array | number[] };
+/**
+ * Per-token output of the transformers.js token-classification pipeline,
+ * verified against @huggingface/transformers@4.2.0 with the real
+ * openai/privacy-filter model:
+ *
+ *   { entity: "B-private_person", score: 0.9999, index: 3, word: " Alice" }
+ *
+ * `word` includes its leading space in the original text, so character offsets
+ * can be reconstructed exactly by walking tokens in order. The aggregated form
+ * (aggregation_strategy: "simple") returns entity_group/word/score but NO
+ * start/end offsets — it is useless for redaction, which is why the per-token
+ * form is used directly.
+ */
+export type TokenClassificationToken = {
+  entity?: string;
+  entity_group?: string;
+  score?: number;
+  index?: number;
+  word?: string;
 };
 
 type TokenClassifier = {
-  (text: string, options?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
-  (batch: string[], options?: Record<string, unknown>): Promise<TokenClassificationOutput[]>;
+  (text: string, options?: Record<string, unknown>): Promise<TokenClassificationToken[]>;
 };
 
 type ProgressEvent = {
@@ -83,7 +98,13 @@ async function loadPipelineFactory(): Promise<PipelineFactory> {
   return module.pipeline;
 }
 
-/** Detect the best available backend, preferring WebGPU, then WebGL, then WASM. */
+/**
+ * Detect the best available backend: WebGPU when the browser exposes a working
+ * adapter, otherwise WASM (CPU), which works everywhere.
+ *
+ * There is no WebGL branch on purpose: onnxruntime-web has no WebGL execution
+ * provider, so a WebGL context would tell us nothing about model support.
+ */
 export async function detectDevice(): Promise<string> {
   if (typeof navigator === "undefined") {
     return "wasm";
@@ -96,19 +117,6 @@ export async function detectDevice(): Promise<string> {
         return "webgpu";
       }
     } catch {
-      // Fall through to the WebGL check.
-    }
-  }
-  if (typeof document !== "undefined") {
-    try {
-      const canvas = document.createElement("canvas");
-      const gl =
-        canvas.getContext("webgl2") ||
-        (canvas.getContext("webgl") as WebGLRenderingContext | null);
-      if (gl) {
-        return "webgl";
-      }
-    } catch {
       // Fall through to WASM.
     }
   }
@@ -118,9 +126,8 @@ export async function detectDevice(): Promise<string> {
 /**
  * Load the in-browser classifier, retrying down the device chain.
  *
- * WebGPU is fastest but is not available in every browser; WebGL is the broad
- * fallback the Shiftbloom deployment targets, and WASM keeps the sandbox usable
- * when no GPU backend exists at all.
+ * WebGPU is fastest but is not available in every browser; WASM (CPU) is the
+ * universal fallback and keeps the sandbox usable everywhere.
  */
 export function loadBrowserEngine(options: BrowserEngineOptions = {}): Promise<TokenClassifier> {
   if (pipelinePromise) {
@@ -191,142 +198,106 @@ export function activeBrowserDevice(): string | null {
 /**
  * Run detection in the browser and return spans matching the API contract.
  *
- * Uses the batch form to recover per-token logits and character offsets, then
- * applies the constrained BIOES decode the model's published calibration
- * specifies. Falls back to the pipeline's own aggregation when the raw logits
- * are not exposed, so a Transformers.js upgrade cannot silently break detection.
+ * Uses the pipeline's per-token output (verified against transformers.js 4.2.0
+ * with the real model): each non-background token carries its BIOES tag,
+ * score, and `word` with leading whitespace preserved. Character offsets are
+ * reconstructed by walking the original text alongside the tokens, then
+ * consecutive B-, I-, E- and S-tagged tokens of one label are grouped into
+ * spans.
  */
 export async function detectSpansInBrowser(
   text: string,
   options: BrowserEngineOptions = {}
 ): Promise<PrivacySpan[]> {
   const classifier = await loadBrowserEngine(options);
-
-  const [result] = (await (classifier as (
-    batch: string[],
-    options?: Record<string, unknown>
-  ) => Promise<TokenClassificationOutput[]>)([text], {
-    ignore_labels: IGNORE_LABELS
-  })) as TokenClassificationOutput[];
-
-  const { logits } = result ?? {};
-  if (!logits?.data || !Array.isArray(logits.dims) || logits.dims.length < 2) {
-    return detectSpansViaAggregation(classifier, text);
-  }
-
-  const [sequenceLength, numLabels] = logits.dims as number[];
-  const scores = logits.data as ArrayLike<number>;
-
-  const tokenLabels: string[] = [];
-  for (let token = 0; token < sequenceLength; token += 1) {
-    let bestIndex = 0;
-    let bestScore = -Infinity;
-    for (let label = 0; label < numLabels; label += 1) {
-      const score = scores[token * numLabels + label];
-      if (score > bestScore) {
-        bestScore = score;
-        bestIndex = label;
-      }
-    }
-    tokenLabels.push(labelForIndex(bestIndex));
-  }
-
-  const offsets = await computeOffsets(classifier, text, sequenceLength);
-  if (!offsets) {
-    return detectSpansViaAggregation(classifier, text);
-  }
-
-  const decoded = decodeBIOESToSpans(tokenLabels, offsets);
-  return normalizeSpans(text, decoded);
-}
-
-async function detectSpansViaAggregation(
-  classifier: TokenClassifier,
-  text: string
-): Promise<PrivacySpan[]> {
-  const entities = (await (
-    classifier as (t: string, options?: Record<string, unknown>) => Promise<Array<Record<string, unknown>>>
-  )(text, { ignore_labels: IGNORE_LABELS, aggregation_strategy: "simple" })) as Array<
-    Record<string, unknown>
-  >;
-
-  const spans: PrivacySpan[] = [];
-  for (const entity of entities) {
-    const rawLabel = String(entity.entity_group ?? entity.entity ?? entity.label ?? "");
-    const start = Number(entity.start);
-    const end = Number(entity.end);
-    const score = Number(entity.score ?? 0);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-      continue;
-    }
-    spans.push({
-      label: rawLabel.replace(/^[BIES]-/, "").toLowerCase(),
-      start,
-      end,
-      text: text.slice(start, end),
-      score: Math.max(0, Math.min(1, Number.isFinite(score) ? score : 0))
-    });
-  }
-  return normalizeSpans(text, spans);
+  const tokens = await classifier(text, { ignore_labels: IGNORE_LABELS });
+  return normalizeSpans(text, tokensToSpans(Array.isArray(tokens) ? tokens : [], text));
 }
 
 /**
- * Recover character offsets by re-tokenizing in the browser.
- *
- * Returns null when the tokenizer is unreachable so the caller can fall back to
- * pipeline aggregation rather than returning mis-positioned spans.
+ * Convert per-token predictions with reconstructed offsets into spans.
+ * Pure; exported for testing.
  */
-async function computeOffsets(
-  classifier: unknown,
-  text: string,
-  sequenceLength: number
-): Promise<{ start: number; end: number }[] | null> {
-  const tokenizer = (classifier as { tokenizer?: { _tokenizer?: unknown } }).tokenizer;
-  const encoded = await (
-    tokenizer as
-      | { _call?(t: string, options?: Record<string, unknown>): Promise<unknown> }
-      | undefined
-  )?._call?.(text, { return_offsets: true });
+export function tokensToSpans(
+  tokens: readonly TokenClassificationToken[],
+  text: string
+): PrivacySpan[] {
+  const spans: PrivacySpan[] = [];
+  let cursor = 0;
+  let open: { label: string; start: number; end: number; score: number } | null = null;
 
-  const offsets = extractOffsets(encoded);
-  if (!offsets) {
-    return null;
-  }
-  if (offsets.length === sequenceLength) {
-    return offsets;
-  }
-  // Strip special tokens from the front/back to align with the model sequence.
-  return offsets.length > sequenceLength
-    ? offsets.slice(offsets.length - sequenceLength)
-    : null;
-}
-
-function extractOffsets(encoded: unknown): { start: number; end: number }[] | null {
-  if (!encoded || typeof encoded !== "object") {
-    return null;
-  }
-  const candidate = encoded as {
-    offsets?: unknown;
-    input_ids?: { offsets?: unknown };
-  };
-  const raw = candidate.offsets ?? candidate.input_ids?.offsets;
-  if (!Array.isArray(raw)) {
-    return null;
-  }
-  const parsed: { start: number; end: number }[] = [];
-  for (const item of raw) {
-    if (Array.isArray(item) && item.length >= 2) {
-      const start = Number(item[0]);
-      const end = Number(item[1]);
-      if (Number.isInteger(start) && Number.isInteger(end)) {
-        parsed.push({ start, end });
+  const close = () => {
+    if (open && open.end > open.start) {
+      /* Token `word`s keep their leading space, so a span opening at a B- or
+       * orphaned I-tag starts on whitespace. Shift the boundaries onto the
+       * non-whitespace content so masks read "is [REDACTED]," not "is[REDACTED],". */
+      let start = open.start;
+      let end = open.end;
+      while (start < end && /\s/.test(text[start])) {
+        start += 1;
+      }
+      while (end > start && /\s/.test(text[end - 1])) {
+        end -= 1;
+      }
+      if (end > start) {
+        spans.push({
+          label: open.label,
+          start,
+          end,
+          text: text.slice(start, end),
+          score: open.score
+        });
       }
     }
-  }
-  return parsed.length > 0 ? parsed : null;
-}
+    open = null;
+  };
 
-/** Map a class index to its BIOES label using the model's bundled id2label order. */
-function labelForIndex(index: number): string {
-  return ID_TO_LABEL[index] ?? "O";
+  for (const token of tokens) {
+    const rawEntity = String(token.entity ?? token.entity_group ?? "");
+    if (!rawEntity || rawEntity === "O") {
+      close();
+      continue;
+    }
+
+    const boundary = rawEntity.slice(0, 2);
+    const label = stripBoundary(rawEntity);
+    const score = Math.max(0, Math.min(1, Number(token.score ?? 0)));
+
+    const word = String(token.word ?? "");
+    const found = word ? text.indexOf(word, cursor) : -1;
+    if (found < 0) {
+      // Token text not locatable (normalisation artefact): close so offsets
+      // cannot drift rather than guessing a position.
+      close();
+      continue;
+    }
+
+    const start = found;
+    const end = found + word.length;
+    cursor = end;
+
+    if (boundary === "B-" || boundary === "S-") {
+      close();
+      open = { label, start, end, score };
+      if (boundary === "S-") {
+        close();
+      }
+    } else if (boundary === "I-" || boundary === "E-") {
+      if (open && open.label === label) {
+        open.end = end;
+        open.score = Math.min(open.score, score);
+      } else {
+        close();
+        open = { label, start, end, score };
+      }
+      if (boundary === "E-") {
+        close();
+      }
+    } else {
+      close();
+    }
+  }
+
+  close();
+  return spans;
 }
