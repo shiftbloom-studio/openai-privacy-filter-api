@@ -15,7 +15,7 @@ a production policy engine, classifier benchmark, or complete data governance sy
 
 - FastAPI API with `/health` and `/v1/filter`.
 - Next.js sandbox UI for testing sample text and inspecting detected spans.
-- Two runtimes behind one contract: in-browser (WebGPU/WebGL/WASM) and server-side (FastAPI).
+- Two runtimes behind one contract: in-browser (WebGPU/WASM) and server-side (FastAPI).
 - Redaction modes: `mask`, `remove`, and `annotate`.
 - Optional internal-token protection between the web proxy and API.
 - Docker images for the API and web app.
@@ -31,7 +31,7 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
 
 - `browser` (default): the model runs in the visitor's browser through
   [Transformers.js](https://huggingface.co/docs/transformers.js), using WebGPU where available and
-  falling back to WebGL and then WASM. No inference compute is required and input text never leaves
+  falling back to WASM (CPU). No inference compute is required and input text never leaves
   the device. Because the weights are about 900 MB, the sandbox asks for consent before downloading
   anything — nothing is fetched until the visitor agrees.
 - `server`: the Next.js server route proxies to the Python FastAPI service.
@@ -39,7 +39,7 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
 ```mermaid
 flowchart LR
   User["Browser"] --> Web["Next.js sandbox"]
-  Web -->|"runtime: browser"| InBrowser["Transformers.js WebGPU/WebGL/WASM"]
+  Web -->|"runtime: browser"| InBrowser["Transformers.js WebGPU/WASM"]
   InBrowser --> RedactionB["Redaction logic"]
   Web -->|"runtime: server"| Proxy["/api/filter server route"]
   Proxy --> API["FastAPI /v1/filter"]
@@ -222,7 +222,7 @@ See [docs/api.md](docs/api.md) for the API contract.
 | `PRIVACY_FILTER_TRUST_REMOTE_CODE` | API | `false` | Enables remote model code if a future revision requires it. |
 | `HF_HOME` | API | `.hf-cache` locally | Hugging Face cache directory. |
 | `PRIVACY_FILTER_API_URL` | web | `http://localhost:8000` | API base URL used by the Next.js server-side proxy. Only used in `server` runtime. |
-| `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` | web | `browser` | `browser` runs the model in-browser (WebGPU/WebGL/WASM). `server` proxies to the FastAPI service. |
+| `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` | web | `browser` | `browser` runs the model in-browser (WebGPU/WASM). `server` proxies to the FastAPI service. |
 
 ## Verification
 

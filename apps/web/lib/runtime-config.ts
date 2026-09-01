@@ -6,7 +6,7 @@
  * - `server`: the Next.js server route proxies to the Python FastAPI service
  *   (or any compatible `/v1/filter` endpoint). Requires inference compute.
  * - `browser`: the model runs in the visitor's browser through Transformers.js
- *   on WebGPU, falling back to WebGL and then to WASM. Requires no server-side
+ *   on WebGPU, falling back to WASM (CPU). Requires no server-side
  *   compute and no text ever leaves the device.
  *
  * The Shiftbloom deployment runs `browser` because there is no provisioned
@@ -41,8 +41,15 @@ export function getFilterRuntime(): FilterRuntime {
   return resolveFilterRuntime(process.env.NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME);
 }
 
-/** Backend device preference for the browser runtime, tried in order. */
-export const BROWSER_DEVICE_PREFERENCE = ["webgpu", "webgl", "wasm"] as const;
+/**
+ * Backend device preference for the browser runtime, tried in order.
+ *
+ * transformers.js / onnxruntime-web supports exactly two browser backends:
+ * `webgpu` and `wasm`. There is no WebGL backend — WebGL was never an
+ * onnxruntime execution provider, so requesting it can only fail or, worse,
+ * fall through silently. WASM runs everywhere (CPU), just slower.
+ */
+export const BROWSER_DEVICE_PREFERENCE = ["webgpu", "wasm"] as const;
 
 export type BrowserDevice = (typeof BROWSER_DEVICE_PREFERENCE)[number];
 
