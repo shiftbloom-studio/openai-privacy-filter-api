@@ -1,5 +1,12 @@
 # Deployment Notes
 
+> **Preview deployments on PR branches:** Vercel's *Auto-cancel previous
+> deployments* setting (on by default) cancels an in-flight build on the same
+> branch when a new push arrives, and a Redeploy from the dashboard also
+> cancels an in-flight git build. If a preview shows as CANCELED, that is why —
+> redeploy the newest commit and let the build finish without interleaving
+> other actions on the same branch. A preview that is already READY stays up.
+
 The sandbox has two runtimes behind one contract. Pick based on whether you have inference compute:
 
 | Runtime | Inference compute | Where text is processed | Notes |
