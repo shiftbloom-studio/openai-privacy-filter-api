@@ -27,7 +27,7 @@
     "eslint-plugin-react-hooks": "latest",
     "jsdom": "^30.0.1",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "typescript-eslint": "8.67.0",
+    "typescript-eslint": "8.68.0",
     "typescript7": "npm:typescript@7.0.2",
     "vitest": "^4.1.10"
   }
