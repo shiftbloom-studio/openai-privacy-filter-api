@@ -1,11 +1,42 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "./route";
 
+const checkBotIdMock = vi.fn();
+
+vi.mock("botid/server", () => ({
+  checkBotId: () => checkBotIdMock()
+}));
+
 describe("filter proxy route", () => {
+  beforeEach(() => {
+    checkBotIdMock.mockReset();
+    checkBotIdMock.mockResolvedValue({ isBot: false });
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+  });
+
+  it("rejects requests classified as bots", async () => {
+    checkBotIdMock.mockResolvedValue({ isBot: true });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/filter", {
+        method: "POST",
+        body: JSON.stringify({
+          text: "Email alice@example.com",
+          mode: "mask",
+          mask_token: "[REDACTED]"
+        })
+      })
+    );
+
+    expect(response.status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("rejects invalid payloads before calling upstream", async () => {
