@@ -1,4 +1,4 @@
-# @shiftbloom/privacy-filter
+# @shiftbloom-studio/privacy-filter
 
 In-browser privacy-span detection with the
 [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter) model via
@@ -24,7 +24,7 @@ else) — no server inference compute, and input text never leaves the browser.
 ## Install
 
 ```bash
-npm install @shiftbloom/privacy-filter
+npm install @shiftbloom-studio/privacy-filter
 ```
 
 Published from this monorepo by CI: merging a version bump in
@@ -48,7 +48,7 @@ import {
   applyRedaction,
   detectSpansInBrowser,
   type LoadProgress
-} from "@shiftbloom/privacy-filter";
+} from "@shiftbloom-studio/privacy-filter";
 
 export function FilterButton({ text }: { text: string }) {
   const [progress, setProgress] = useState<LoadProgress | null>(null);
@@ -121,9 +121,9 @@ This package is developed inside the
 monorepo (`packages/privacy-filter`).
 
 ```bash
-npm run build --workspace @shiftbloom/privacy-filter
-npm run test --workspace @shiftbloom/privacy-filter
-npm run typecheck --workspace @shiftbloom/privacy-filter
+npm run build --workspace @shiftbloom-studio/privacy-filter
+npm run test --workspace @shiftbloom-studio/privacy-filter
+npm run typecheck --workspace @shiftbloom-studio/privacy-filter
 ```
 
 A real-model smoke test (downloads the actual weights):

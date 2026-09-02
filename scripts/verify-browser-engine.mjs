@@ -7,7 +7,7 @@
  * the per-token output with the production tokensToSpans + chunking pipeline,
  * and redacts it. Exits non-zero when the expected spans are missing.
  *
- * Usage: npm run build --workspace @shiftbloom/privacy-filter && npm run verify:model
+ * Usage: npm run build --workspace @shiftbloom-studio/privacy-filter && npm run verify:model
  */
 import { pipeline } from "@huggingface/transformers";
 
@@ -18,7 +18,7 @@ import {
   mergeChunkSpans,
   normalizeSpans,
   tokensToSpans
-} from "@shiftbloom/privacy-filter";
+} from "@shiftbloom-studio/privacy-filter";
 
 const TEXT =
   "My name is Alice Smith, my email is alice@example.com, and I live in Berlin.";

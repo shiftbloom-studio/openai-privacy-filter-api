@@ -1,5 +1,5 @@
 {
-  "name": "@shiftbloom/privacy-filter",
+  "name": "@shiftbloom-studio/privacy-filter",
   "version": "0.1.0",
   "description": "In-browser privacy-span detection with the openai/privacy-filter model via Transformers.js (WebGPU/WASM). No server compute; text never leaves the device.",
   "keywords": [
