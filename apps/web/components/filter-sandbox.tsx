@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 
 import { ConsentModal } from "@/components/consent-modal";
-import { detectSpansInBrowser, loadBrowserEngine, type LoadProgress } from "@/lib/browser-engine";
+import { detectSpansInBrowser, type LoadProgress } from "@/lib/browser-engine";
 import { hasStoredConsent, storeConsent } from "@/lib/consent";
 import {
   FILTER_MODES,
@@ -40,40 +40,9 @@ export function FilterSandbox(): ReactNode {
   const [modelProgress, setModelProgress] = useState<LoadProgress | null>(null);
   const [consentOpen, setConsentOpen] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<PendingRequest | null>(null);
-  /* The model is roughly 900 MB, so nothing is fetched until the visitor has
-   * agreed. In particular there is no download on mount. */
-  const [consentResolved, setConsentResolved] = useState(() =>
-    typeof window === "undefined" ? false : hasStoredConsent()
-  );
-
-  /**
-   * Warm the model only after consent, and only once a filter has actually been
-   * requested. Consent alone does not start a 900 MB download.
-   */
-  useEffect(() => {
-    if (runtime !== "browser" || !consentResolved || modelProgress) {
-      return;
-    }
-    let active = true;
-    loadBrowserEngine({
-      onProgress: (progress) => {
-        if (active) {
-          setModelProgress(progress);
-        }
-      }
-    }).catch(() => {
-      if (active) {
-        setModelProgress({ stage: "error", percent: null, detail: "model unavailable" });
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [runtime, consentResolved, modelProgress]);
 
   function acceptConsent() {
     storeConsent();
-    setConsentResolved(true);
     setConsentOpen(false);
     const request = pendingRequest;
     setPendingRequest(null);
@@ -94,9 +63,7 @@ export function FilterSandbox(): ReactNode {
     try {
       setResult(
         await runFilter(request, runtime, (progress) => {
-          if (progress.stage === "loading") {
-            setModelProgress(progress);
-          }
+          setModelProgress(progress);
         })
       );
     } catch (caughtError) {
