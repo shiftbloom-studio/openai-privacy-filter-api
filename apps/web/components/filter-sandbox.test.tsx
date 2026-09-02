@@ -128,6 +128,15 @@ describe("FilterSandbox", () => {
       runtimeConfig.getFilterRuntime.mockReturnValue("browser");
     });
 
+    it("does not preload the model on mount when consent is already stored", () => {
+      consent.hasStoredConsent.mockReturnValue(true);
+
+      render(<FilterSandbox />);
+
+      expect(browserEngine.loadBrowserEngine).not.toHaveBeenCalled();
+      expect(browserEngine.detectSpansInBrowser).not.toHaveBeenCalled();
+    });
+
     it("runs the model in-browser and never calls the server proxy", async () => {
       consent.hasStoredConsent.mockReturnValue(true);
       const fetchMock = vi.fn();
@@ -139,6 +148,35 @@ describe("FilterSandbox", () => {
       await waitFor(() => expect(screen.getByText("private_email")).toBeVisible());
       expect(browserEngine.detectSpansInBrowser).toHaveBeenCalled();
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("returns the button to idle after the model is ready and filtering completes", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
+      vi.stubGlobal("fetch", vi.fn());
+      browserEngine.detectSpansInBrowser.mockImplementation(
+        async (
+          _text: string,
+          options?: {
+            onProgress?: (progress: {
+              stage: "loading" | "ready";
+              percent: number | null;
+              detail: string;
+            }) => void;
+          }
+        ) => {
+          options?.onProgress?.({ stage: "loading", percent: 50, detail: "loading model" });
+          await Promise.resolve();
+          options?.onProgress?.({ stage: "ready", percent: 100, detail: "ready (wasm)" });
+          return BROWSER_SPANS;
+        }
+      );
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+
+      await waitFor(() => expect(screen.getByText("private_email")).toBeVisible());
+      expect(screen.getByRole("button", { name: "Run privacy filter" })).toBeEnabled();
+      expect(screen.getByText(/In-browser model ready \(wasm\)/)).toBeVisible();
     });
 
     it("renders redacted output for the sample text", async () => {
