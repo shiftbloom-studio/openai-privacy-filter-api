@@ -12,10 +12,16 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f8f7f5",
-    theme_color: "#e63946",
+    background_color: "#ffffff",
+    theme_color: "#FF2E52",
     categories: ["developer tools", "productivity", "security"],
     icons: [
+      {
+        src: "/bloom.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any"
+      },
       {
         src: "/favicon-16x16.png",
         sizes: "16x16",
@@ -39,11 +45,6 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: "/icon-512.png",
         sizes: "512x512",
-        type: "image/png"
-      },
-      {
-        src: "/logo.png",
-        sizes: "2160x2160",
         type: "image/png"
       }
     ]

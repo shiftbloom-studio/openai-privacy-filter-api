@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 
+import { Bloom } from "@/components/bloom";
+
 const studioLinks = [
   { href: "https://shiftbloom.studio/#code", label: "Code" },
   { href: "https://shiftbloom.studio/#art", label: "Art" },
@@ -10,17 +12,11 @@ export function SiteHeader(): ReactNode {
   return (
     <header className="site-header">
       <a className="site-brand" href="https://shiftbloom.studio/#hero" aria-label="Open shiftbloom studio">
-        <img
-          alt="shiftbloom studio logo"
-          className="brand-logo"
-          height={40}
-          loading="eager"
-          src="/logo.png"
-          width={40}
-        />
+        <Bloom className="brand-logo" size={34} variant="solid" />
         <span className="brand-wordmark">
           <span>shiftbloom</span>
-          <strong>studio.</strong>
+          <span className="studio">studio</span>
+          <span className="seed">.</span>
         </span>
       </a>
       <nav className="site-nav" aria-label="Shiftbloom Studio">
