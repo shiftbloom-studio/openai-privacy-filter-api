@@ -1,10 +1,17 @@
 # Deployment Notes
 
+> **Preview deployments on PR branches:** Vercel's *Auto-cancel previous
+> deployments* setting (on by default) cancels an in-flight build on the same
+> branch when a new push arrives, and a Redeploy from the dashboard also
+> cancels an in-flight git build. If a preview shows as CANCELED, that is why —
+> redeploy the newest commit and let the build finish without interleaving
+> other actions on the same branch. A preview that is already READY stays up.
+
 The sandbox has two runtimes behind one contract. Pick based on whether you have inference compute:
 
 | Runtime | Inference compute | Where text is processed | Notes |
 | --- | --- | --- | --- |
-| `browser` (default) | none | visitor's device | WebGPU, then WebGL, then WASM. Used by the Shiftbloom deployment. |
+| `browser` (default) | none | visitor's device | WebGPU, else WASM (CPU). Used by the Shiftbloom deployment. |
 | `server` | required | your API host | Next.js proxies `/api/filter` to FastAPI. |
 
 Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** — Next.js inlines `NEXT_PUBLIC_*` into
@@ -36,7 +43,7 @@ if you also deploy the API and set `PRIVACY_FILTER_API_URL`.
 In browser mode the deployment needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal
 token. Visitors download roughly 900 MB once, behind a consent dialog, and the browser caches it.
 
-## In-browser (WebGL/WebGPU) — the Shiftbloom deployment on Vercel
+## In-browser (WebGPU/WASM) — the Shiftbloom deployment on Vercel
 
 This is the default and requires no server-side compute, no model files, and no Python runtime. The
 `q4` ONNX variant of `openai/privacy-filter` is fetched from the Hugging Face CDN on first use and
@@ -61,9 +68,9 @@ Because inference is client-side:
   shows a consent dialog before fetching any of it; nothing is downloaded on page load. Consent is
   remembered locally, and declining is a deferral — the visitor can accept on a later attempt.
 - Once downloaded, the weights stay in the browser cache, so repeat visits are fast.
-- WebGPU is fastest where supported. WebGL is the broad fallback. WASM keeps the sandbox usable with
-  no GPU backend, at reduced speed.
-- Browsers without WebGL2/WebGL (very old clients, some locked-down environments) cannot run the
+- WebGPU is fastest where supported. Without it the model runs on WASM (CPU): slower, but it works in
+  every browser.
+- There is no WebGL backend: onnxruntime-web never had one, so support is WebGPU or CPU/WASM.
   model in-browser; those users should self-host the `server` runtime.
 
 Everything from here to the Cloudflare section documents the `server` runtime, which remains fully

@@ -101,7 +101,8 @@ export function ConsentModal({ open, onAccept, onDecline }: ConsentModalProps): 
               metered or mobile connection.
             </li>
             <li>
-              <strong>Requires WebGPU or WebGL.</strong> Without either, the sandbox cannot run here.
+              <strong>Runs on WebGPU or WASM (CPU).</strong> Without WebGPU the
+              model runs on your CPU — slower, but it works in every browser.
             </li>
           </ul>
           <p className="consent-note">
