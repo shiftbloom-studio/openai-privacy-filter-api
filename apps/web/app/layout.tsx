@@ -1,10 +1,34 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import localFont from "next/font/local";
 
 import { SiteFooter } from "@/components/site-footer";
 
 import "./globals.css";
 import { defaultDescription, defaultTitle, keywords, siteName, siteUrl, socialImage, studioName } from "./seo";
+
+/* Three voices, one register (Brand Book v2.0):
+   Clash Display = statements · General Sans = explaining · JetBrains Mono = truth. */
+const clashDisplay = localFont({
+  src: "../fonts/clash-display/ClashDisplay-Variable.woff2",
+  variable: "--font-clash",
+  weight: "400 700",
+  display: "swap"
+});
+
+const generalSans = localFont({
+  src: "../fonts/general-sans/GeneralSans-Variable.woff2",
+  variable: "--font-general",
+  weight: "400 600",
+  display: "swap"
+});
+
+const jetbrainsMono = localFont({
+  src: "../fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+  variable: "--font-jetbrains",
+  weight: "400 700",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
@@ -36,6 +60,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/bloom.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" }
@@ -74,17 +99,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8f7f5" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0f0f" }
-  ],
+  themeColor: "#ffffff",
   colorScheme: "light"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
         {children}
         <SiteFooter />
       </body>
