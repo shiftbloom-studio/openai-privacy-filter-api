@@ -15,6 +15,8 @@ a production policy engine, classifier benchmark, or complete data governance sy
 
 - FastAPI API with `/health` and `/v1/filter`.
 - Next.js sandbox UI for testing sample text and inspecting detected spans.
+- [`@shiftbloom/privacy-filter`](packages/privacy-filter): the in-browser engine as a standalone npm
+  package (Transformers.js, WebGPU/WASM) for reuse in other Next.js apps.
 - Two runtimes behind one contract: in-browser (WebGPU/WASM) and server-side (FastAPI).
 - Redaction modes: `mask`, `remove`, and `annotate`.
 - Optional internal-token protection between the web proxy and API.
@@ -31,9 +33,10 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
 
 - `browser` (default): the model runs in the visitor's browser through
   [Transformers.js](https://huggingface.co/docs/transformers.js), using WebGPU where available and
-  falling back to WASM (CPU). No inference compute is required and input text never leaves
-  the device. Because the weights are about 900 MB, the sandbox asks for consent before downloading
-  anything — nothing is fetched until the visitor agrees.
+  falling back to WASM (CPU). The engine lives in the standalone
+  [`@shiftbloom/privacy-filter`](packages/privacy-filter) package. No inference compute is required
+  and input text never leaves the device. Because the weights are about 900 MB, the sandbox asks for
+  consent before downloading anything — nothing is fetched until the visitor agrees.
 - `server`: the Next.js server route proxies to the Python FastAPI service.
 
 ```mermaid
@@ -65,10 +68,35 @@ reject direct public traffic.
 apps/
   api/      FastAPI service, Lambda adapter, redaction logic, and tests
   web/      Next.js App Router sandbox, API proxy, and tests
+packages/
+  privacy-filter/  @shiftbloom/privacy-filter — in-browser engine (npm package)
 infra/
   docker/   API and web Dockerfiles
 docs/       API contract and deployment notes
 ```
+
+## The npm package
+
+The in-browser engine is published as
+[`@shiftbloom/privacy-filter`](packages/privacy-filter) so other Next.js (or any bundler-based)
+apps can run the same model client-side:
+
+```bash
+npm install @shiftbloom/privacy-filter
+```
+
+```tsx
+"use client";
+
+import { applyRedaction, detectSpansInBrowser } from "@shiftbloom/privacy-filter";
+
+const spans = await detectSpansInBrowser(text, { onProgress: setProgress });
+const [filtered] = applyRedaction(text, spans, "mask", "[REDACTED]");
+```
+
+Detection is model-only (no regex/keyword heuristics), long text is chunked for the model's
+257-token window, and the ~900 MB download starts only when you call the engine — gate it behind a
+consent prompt. See the [package README](packages/privacy-filter/README.md) for the full API.
 
 ## Requirements
 
@@ -234,13 +262,20 @@ python -m ruff check apps/api
 python -m pytest apps/api
 ```
 
-Web:
+Web and package (root scripts cover both `apps/web` and `packages/privacy-filter`):
 
 ```bash
-npm --workspace apps/web run lint
-npm --workspace apps/web run typecheck
-npm --workspace apps/web run test
-npm --workspace apps/web run build
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Optional real-model smoke test for the browser engine (downloads the actual ~900 MB weights once,
+then uses the local Hugging Face cache):
+
+```bash
+npm run verify:model
 ```
 
 Docker smoke build:
@@ -301,7 +336,7 @@ The repository ships a [vercel.json](vercel.json) for this setup. Configure the 
 | --- | --- |
 | Root Directory | `apps/web` |
 | Framework Preset | Next.js |
-| Build Command | `cd ../.. && npm --workspace apps/web run build` |
+| Build Command | `cd ../.. && npm run build` |
 | Install Command | `cd ../.. && npm install` |
 | Output Directory | `.next` |
 

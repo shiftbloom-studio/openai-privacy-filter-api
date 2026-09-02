@@ -1,11 +1,20 @@
-import type { PrivacySpan } from "./privacy-filter";
-import {
-  BROWSER_MODEL_ID,
-  IGNORE_LABELS,
-  normalizeSpans,
-  stripBoundary
-} from "./privacy-filter-browser";
-import { BROWSER_DEFAULT_DTYPE, BROWSER_DEVICE_PREFERENCE } from "./runtime-config";
+import { chunkText, mergeChunkSpans } from "./chunking";
+import type { PrivacySpan } from "./types";
+import { IGNORE_LABELS, MODEL_ID, normalizeSpans, stripBoundary } from "./labels";
+
+/**
+ * Backend device preference for the browser runtime, tried in order.
+ *
+ * transformers.js / onnxruntime-web supports exactly two browser backends:
+ * `webgpu` and `wasm`. There is no WebGL backend — WebGL was never an
+ * onnxruntime execution provider, so requesting it can only fail or, worse,
+ * fall through silently. WASM runs everywhere (CPU), just slower.
+ */
+export const BROWSER_DEVICE_PREFERENCE = ["webgpu", "wasm"] as const;
+
+export type BrowserDevice = (typeof BROWSER_DEVICE_PREFERENCE)[number];
+
+export const BROWSER_DEFAULT_DTYPE = "q4";
 
 /**
  * Per-token output of the transformers.js token-classification pipeline,
@@ -149,7 +158,7 @@ export function loadBrowserEngine(options: BrowserEngineOptions = {}): Promise<T
       try {
         onProgress?.({ stage: "loading", percent: null, detail: `loading model (${device})` });
 
-        const classifier = await pipeline("token-classification", BROWSER_MODEL_ID, {
+        const classifier = await pipeline("token-classification", MODEL_ID, {
           device,
           dtype: BROWSER_DEFAULT_DTYPE,
           progress_callback: (event: ProgressEvent) => {
@@ -204,14 +213,45 @@ export function activeBrowserDevice(): string | null {
  * reconstructed by walking the original text alongside the tokens, then
  * consecutive B-, I-, E- and S-tagged tokens of one label are grouped into
  * spans.
+ *
+ * Text longer than the model's 257-token attention window is classified in
+ * overlapping chunks (see chunking.ts); per-chunk spans are mapped back to
+ * original offsets and deduplicated at the seams.
  */
 export async function detectSpansInBrowser(
   text: string,
   options: BrowserEngineOptions = {}
 ): Promise<PrivacySpan[]> {
   const classifier = await loadBrowserEngine(options);
-  const tokens = await classifier(text, { ignore_labels: IGNORE_LABELS });
-  return normalizeSpans(text, tokensToSpans(Array.isArray(tokens) ? tokens : [], text));
+  const chunks = chunkText(text);
+
+  if (chunks.length <= 1) {
+    const tokens = await classifier(text, { ignore_labels: IGNORE_LABELS });
+    return normalizeSpans(text, tokensToSpans(Array.isArray(tokens) ? tokens : [], text));
+  }
+
+  const spansPerChunk: PrivacySpan[][] = [];
+  for (const chunk of chunks) {
+    const tokens = await classifier(chunk.text, { ignore_labels: IGNORE_LABELS });
+    spansPerChunk.push(tokensToSpans(Array.isArray(tokens) ? tokens : [], chunk.text));
+  }
+
+  // mergeChunkSpans returns global start/end plus the owning chunk; recover
+  // each span's label and score from the per-chunk result it came from.
+  const merged = mergeChunkSpans(chunks, spansPerChunk);
+  const spans: PrivacySpan[] = [];
+  for (const { start, end, chunkIndex } of merged) {
+    const local = spansPerChunk[chunkIndex].find(
+      (span) =>
+        span.start === start - chunks[chunkIndex].offset &&
+        span.end === end - chunks[chunkIndex].offset
+    );
+    if (local) {
+      spans.push({ ...local, start, end });
+    }
+  }
+
+  return normalizeSpans(text, spans);
 }
 
 /**

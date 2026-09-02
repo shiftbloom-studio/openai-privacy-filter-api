@@ -14,12 +14,13 @@ dist/
 build/
 *.egg-info/
 
-# Hugging Face / model caches
-.cache/
-.hf-cache/
-models/
-privacy-filter/
-privacy-filter-model/*
+# Hugging Face / model caches (anchored to the repo root so they cannot
+# swallow packages/privacy-filter)
+/.cache/
+/.hf-cache/
+/models/
+/privacy-filter/
+/privacy-filter-model/*
 !privacy-filter-model/
 !privacy-filter-model/.gitkeep
 
