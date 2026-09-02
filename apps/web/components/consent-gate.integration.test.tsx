@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * Integration-style guard for the consent gate.
  *
- * Unlike the unit tests (which mock @/lib/browser-engine), this test leaves the
- * real browser engine in place and asserts on actual network activity. Its only
- * job is to prove that no model download is attempted until the visitor agrees.
+ * Unlike the unit tests (which mock @shiftbloom/privacy-filter), this test
+ * leaves the real browser engine in place and asserts on actual network
+ * activity. Its only job is to prove that no model download is attempted until
+ * the visitor agrees.
  */
 
 const realFetch = globalThis.fetch;

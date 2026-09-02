@@ -1,6 +1,6 @@
 import { checkBotId } from "botid/server";
 
-import { normalizeApiBaseUrl, validateFilterRequest } from "@/lib/privacy-filter";
+import { normalizeApiBaseUrl, validateFilterRequest } from "@shiftbloom/privacy-filter";
 
 export const runtime = "nodejs";
 

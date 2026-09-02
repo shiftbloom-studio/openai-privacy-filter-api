@@ -41,16 +41,6 @@ export function getFilterRuntime(): FilterRuntime {
   return resolveFilterRuntime(process.env.NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME);
 }
 
-/**
- * Backend device preference for the browser runtime, tried in order.
- *
- * transformers.js / onnxruntime-web supports exactly two browser backends:
- * `webgpu` and `wasm`. There is no WebGL backend — WebGL was never an
- * onnxruntime execution provider, so requesting it can only fail or, worse,
- * fall through silently. WASM runs everywhere (CPU), just slower.
- */
-export const BROWSER_DEVICE_PREFERENCE = ["webgpu", "wasm"] as const;
-
-export type BrowserDevice = (typeof BROWSER_DEVICE_PREFERENCE)[number];
-
-export const BROWSER_DEFAULT_DTYPE = "q4";
+/* The browser engine itself — including the device preference chain (WebGPU,
+ * then WASM) and the q4 dtype default — lives in the
+ * `@shiftbloom/privacy-filter` package (packages/privacy-filter). */

@@ -3,18 +3,20 @@
 import { FormEvent, ReactNode, useState } from "react";
 
 import { ConsentModal } from "@/components/consent-modal";
-import { detectSpansInBrowser, type LoadProgress } from "@/lib/browser-engine";
 import { hasStoredConsent, storeConsent } from "@/lib/consent";
+import { getFilterRuntime } from "@/lib/runtime-config";
 import {
   FILTER_MODES,
-  FilterMode,
-  FilterResponse,
-  PrivacySpan,
+  MODEL_ID,
+  type FilterMode,
+  type FilterResponse,
+  type LoadProgress,
+  type PrivacySpan,
   applyRedaction,
+  detectSpansInBrowser,
   spanKey,
   validateFilterRequest
-} from "@/lib/privacy-filter";
-import { getFilterRuntime } from "@/lib/runtime-config";
+} from "@shiftbloom/privacy-filter";
 
 const EXAMPLE_TEXT =
   "My name is Alice Smith, my email is alice@example.com, and I live in Berlin.";
@@ -270,7 +272,7 @@ function buildResponse(
     original_text: request.text,
     filtered_text: filteredText,
     spans: request.include_spans ? selectedSpans : [],
-    model: "openai/privacy-filter"
+    model: MODEL_ID
   };
 }
 
