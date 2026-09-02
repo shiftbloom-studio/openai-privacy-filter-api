@@ -9,6 +9,42 @@ export const size = {
 };
 export const contentType = "image/png";
 
+/* The Bloom, drawn from the brandbook v2.0 construction spec — same rings as
+ * components/bloom.tsx, emitted as a data-URI SVG because ImageResponse
+ * (satori) renders <img> but not inline <svg>. */
+const RINGS = [
+  { tipRadius: 100, petals: 10, width: 200 * 0.16, length: 200 * 0.45, root: "#D8163F", tip: "#FF2E52", offset: 0 },
+  { tipRadius: 74, petals: 10, width: 148 * 0.17, length: 148 * 0.45, root: "#FF2E52", tip: "#FF7E9E", offset: 18 },
+  { tipRadius: 50, petals: 8, width: 100 * 0.19, length: 100 * 0.45, root: "#FF7E9E", tip: "#FFC2D3", offset: 40.5 },
+  { tipRadius: 27, petals: 6, width: 54 * 0.24, length: 54 * 0.45, root: "#FFB4CA", tip: "#FFDCE7", offset: 70.5 }
+];
+
+const n = (v: number) => Number(v.toFixed(2));
+
+const petalPath = (w: number, l: number) => {
+  const c = n(0.55 * l);
+  return `M 0,0 C ${n(w)},0 ${n(w)},${-c} 0,${-n(l)} C ${-n(w)},${-c} ${-n(w)},0 0,0 Z`;
+};
+
+function bloomSvgDataUri(): string {
+  const defs = RINGS.map(
+    (ring) =>
+      `<linearGradient id="r${ring.tipRadius}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${-n(ring.length)}"><stop offset="0%" stop-color="${ring.root}"/><stop offset="100%" stop-color="${ring.tip}"/></linearGradient>`
+  ).join("");
+
+  const petals = RINGS.map((ring) => {
+    const d = petalPath(ring.width, ring.length);
+    const rootDistance = ring.tipRadius - ring.length;
+    return Array.from({ length: ring.petals }, (_, p) => {
+      const angle = n(ring.offset + (360 / ring.petals) * p);
+      return `<path d="${d}" fill="url(#r${ring.tipRadius})" transform="translate(100 100) rotate(${angle}) translate(0 ${-n(rootDistance)})"/>`;
+    }).join("");
+  }).join("");
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs>${defs}</defs>${petals}<circle cx="100" cy="100" r="7" fill="#FF2E52"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 export default function Image() {
   return new ImageResponse(
     (
@@ -19,53 +55,17 @@ export default function Image() {
           width: "100%",
           height: "100%",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #f8f7f5 0%, #eef2ff 100%)",
-          color: "#1a1a1a",
-          fontFamily:
-            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+          background: "#ffffff",
+          color: "#1A1216",
+          fontFamily: "ui-sans-serif, system-ui, sans-serif"
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: -190,
-            right: -110,
-            width: 520,
-            height: 520,
-            borderRadius: 520,
-            background: "rgba(230, 57, 70, 0.22)"
-          }}
+        {/* The mark owns its corner; type orbits it, never sits on it. */}
+        <img
+          alt=""
+          src={bloomSvgDataUri()}
+          style={{ position: "absolute", right: 72, top: 90, width: 300, height: 300 }}
         />
-        <div
-          style={{
-            position: "absolute",
-            bottom: -220,
-            left: -140,
-            width: 590,
-            height: 590,
-            borderRadius: 590,
-            background: "rgba(99, 102, 241, 0.2)"
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 76,
-            right: 86,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 120,
-            height: 120,
-            borderRadius: 34,
-            background: "#1a1a1a",
-            color: "#ffffff",
-            fontSize: 48,
-            fontWeight: 800
-          }}
-        >
-          PF
-        </div>
         <div
           style={{
             position: "relative",
@@ -80,38 +80,52 @@ export default function Image() {
           <div
             style={{
               display: "flex",
-              marginBottom: 38,
-              color: "#e63946",
-              fontSize: 28,
-              fontWeight: 800,
-              letterSpacing: 1.8
+              marginBottom: 42,
+              fontSize: 30,
+              fontWeight: 600,
+              letterSpacing: -0.6
             }}
           >
-            shiftbloom.studio
+            shiftbloom
+            <span style={{ color: "rgba(26, 18, 22, 0.6)", fontWeight: 400, marginLeft: 10 }}>studio</span>
+            <span style={{ color: "#FF2E52" }}>.</span>
           </div>
           <div
             style={{
               display: "flex",
-              maxWidth: 840,
-              fontSize: 86,
-              fontWeight: 850,
-              letterSpacing: -3,
-              lineHeight: 0.98
+              maxWidth: 780,
+              fontSize: 82,
+              fontWeight: 600,
+              letterSpacing: -2.4,
+              lineHeight: 1.02
             }}
           >
-            OpenAI Privacy Filter Sandbox
+            OpenAI Privacy Filter Sandbox.
           </div>
           <div
             style={{
               display: "flex",
-              maxWidth: 800,
-              marginTop: 30,
-              color: "#4b5563",
-              fontSize: 34,
-              lineHeight: 1.35
+              maxWidth: 720,
+              marginTop: 28,
+              color: "rgba(26, 18, 22, 0.65)",
+              fontSize: 30,
+              lineHeight: 1.4
             }}
           >
             {defaultDescription}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              marginTop: 46,
+              color: "rgba(26, 18, 22, 0.65)",
+              fontFamily: "ui-monospace, monospace",
+              fontSize: 20,
+              letterSpacing: 2.4,
+              textTransform: "uppercase"
+            }}
+          >
+            privacy.shiftbloom.studio · openai/privacy-filter
           </div>
         </div>
       </div>
