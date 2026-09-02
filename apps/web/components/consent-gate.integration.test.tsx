@@ -80,16 +80,16 @@ describe("consent gate: no download without agreement", () => {
     fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
     fireEvent.click(await screen.findByRole("button", { name: /Download and run locally/i }));
 
-    /* The engine loads the Transformers.js runtime via a dynamic import of an
-     * https URL, which Node's ESM loader refuses in jsdom ("Only URLs with a
-     * scheme in: file and data"). That rejection is the observable proof that
-     * an attempt was made — it never goes through fetch, so modelRequests
-     * stays empty by design. */
+    /* A cold cache reaches out to Hugging Face, while a warm cache can load the
+     * same artifacts without a network request. In both cases a model status
+     * appearing only after acceptance proves that the real engine started. It
+     * must then settle back to an enabled button rather than leaving the UI busy. */
     await waitFor(() =>
-      expect(
-        screen.getByRole("status").textContent ?? ""
-      ).toMatch(/In-browser model/)
+      expect(screen.getByRole("status")).toHaveTextContent(/In-browser model/i)
     );
-    expect(screen.getByRole("button", { name: /Loading model/i })).toBeInTheDocument();
+    await waitFor(
+      () => expect(screen.getByRole("button", { name: "Run privacy filter" })).toBeEnabled(),
+      { timeout: 10_000 }
+    );
   });
 });
