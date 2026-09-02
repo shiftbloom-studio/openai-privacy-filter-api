@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { tokensToSpans, type TokenClassificationToken } from "./browser-engine";
+import { tokensToSpans, type TokenClassificationToken } from "./engine";
 
 /* Token fixtures mirror the real @huggingface/transformers@4.2.0 per-token
  * output for openai/privacy-filter, captured from a verified model run:

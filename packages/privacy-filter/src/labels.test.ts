@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { applyRedaction } from "@/lib/privacy-filter";
-import type { PrivacySpan } from "@/lib/privacy-filter";
+import { applyRedaction } from "./redact";
+import type { PrivacySpan } from "./types";
 import {
   ID_TO_LABEL,
   decodeBIOESToSpans,
   normalizeSpans,
   stripBoundary
-} from "@/lib/privacy-filter-browser";
+} from "./labels";
 
 function offsets(pairs: ReadonlyArray<readonly [number, number]>) {
   return pairs.map(([start, end]) => ({ start, end }));

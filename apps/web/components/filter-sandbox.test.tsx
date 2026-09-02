@@ -15,7 +15,14 @@ const consent = vi.hoisted(() => ({
   storeConsent: vi.fn()
 }));
 
-vi.mock("@/lib/browser-engine", () => browserEngine);
+vi.mock("@shiftbloom/privacy-filter", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@shiftbloom/privacy-filter")>();
+  return {
+    ...actual,
+    detectSpansInBrowser: browserEngine.detectSpansInBrowser,
+    loadBrowserEngine: browserEngine.loadBrowserEngine
+  };
+});
 vi.mock("@/lib/runtime-config", () => runtimeConfig);
 vi.mock("@/lib/consent", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/consent")>();

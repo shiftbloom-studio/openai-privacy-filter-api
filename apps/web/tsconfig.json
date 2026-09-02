@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@shiftbloom/privacy-filter": [
+        "../../packages/privacy-filter/src/index.ts"
       ]
     }
   },

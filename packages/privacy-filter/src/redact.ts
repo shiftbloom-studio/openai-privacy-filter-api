@@ -1,28 +1,4 @@
-export const FILTER_MODES = ["mask", "remove", "annotate"] as const;
-
-export type FilterMode = (typeof FILTER_MODES)[number];
-
-export type PrivacySpan = {
-  label: string;
-  start: number;
-  end: number;
-  text: string;
-  score: number;
-};
-
-export type FilterRequest = {
-  text: string;
-  mode: FilterMode;
-  mask_token: string;
-  include_spans: boolean;
-};
-
-export type FilterResponse = {
-  original_text: string;
-  filtered_text: string;
-  spans: PrivacySpan[];
-  model: string;
-};
+import { FILTER_MODES, type FilterMode, type FilterRequest, type PrivacySpan } from "./types";
 
 export function normalizeApiBaseUrl(value: string): string {
   return value.replace(/\/+$/, "");
@@ -97,4 +73,3 @@ export function applyRedaction(
   pieces.push(text.slice(cursor));
   return [pieces.join(""), [...spans]];
 }
-

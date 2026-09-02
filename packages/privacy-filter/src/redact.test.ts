@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeApiBaseUrl, validateFilterRequest } from "./privacy-filter";
+import { normalizeApiBaseUrl, validateFilterRequest } from "./redact";
 
 describe("privacy filter helpers", () => {
   it("normalizes trailing slashes from API base URLs", () => {
