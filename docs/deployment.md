@@ -34,7 +34,7 @@ workspaces, so Vercel's default `npm install` would find no lockfile inside `app
 | Build Command | `cd ../.. && npm run build` |
 | Output Directory | `.next` |
 
-The root `npm run build` builds the `@shiftbloom/privacy-filter` package first and then the Next.js
+The root `npm run build` builds the `@shiftbloom-studio/privacy-filter` package first and then the Next.js
 app. Do not use `npm --prefix ../..` for the build: it resolves dependencies but does not change the
 workspace root, so `--workspace apps/web` fails with `No workspaces found`.
 

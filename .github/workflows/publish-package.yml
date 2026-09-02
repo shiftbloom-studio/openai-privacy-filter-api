@@ -21,15 +21,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Test package
-        run: npm run test --workspace @shiftbloom/privacy-filter
+        run: npm run test --workspace @shiftbloom-studio/privacy-filter
       - name: Publish to npm (skips when the version already exists)
         run: |
           set -euo pipefail
           version="$(node -p "require('./packages/privacy-filter/package.json').version")"
-          if npm view "@shiftbloom/privacy-filter@${version}" version >/dev/null 2>&1; then
-            echo "@shiftbloom/privacy-filter@${version} is already on npm — nothing to do."
+          if npm view "@shiftbloom-studio/privacy-filter@${version}" version >/dev/null 2>&1; then
+            echo "@shiftbloom-studio/privacy-filter@${version} is already on npm — nothing to do."
             exit 0
           fi
-          npm publish --workspace @shiftbloom/privacy-filter --access public
+          npm publish --workspace @shiftbloom-studio/privacy-filter --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

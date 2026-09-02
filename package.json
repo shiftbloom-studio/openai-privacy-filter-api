@@ -7,10 +7,10 @@
     "packages/privacy-filter"
   ],
   "scripts": {
-    "build": "npm run build --workspace @shiftbloom/privacy-filter && npm run build --workspace @shiftbloom/privacy-filter-sandbox",
+    "build": "npm run build --workspace @shiftbloom-studio/privacy-filter && npm run build --workspace @shiftbloom-studio/privacy-filter-sandbox",
     "lint": "npm --workspace apps/web run lint",
-    "test": "npm run build --workspace @shiftbloom/privacy-filter && npm run test --workspace @shiftbloom/privacy-filter && npm run test --workspace @shiftbloom/privacy-filter-sandbox",
-    "typecheck": "npm run typecheck --workspace @shiftbloom/privacy-filter && npm run typecheck --workspace @shiftbloom/privacy-filter-sandbox",
+    "test": "npm run build --workspace @shiftbloom-studio/privacy-filter && npm run test --workspace @shiftbloom-studio/privacy-filter && npm run test --workspace @shiftbloom-studio/privacy-filter-sandbox",
+    "typecheck": "npm run typecheck --workspace @shiftbloom-studio/privacy-filter && npm run typecheck --workspace @shiftbloom-studio/privacy-filter-sandbox",
     "verify:model": "node scripts/verify-browser-engine.mjs"
   },
   "engines": {
