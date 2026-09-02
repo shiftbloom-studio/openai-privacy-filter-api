@@ -1,0 +1,68 @@
+{
+  "name": "@shiftbloom/privacy-filter",
+  "version": "0.1.0",
+  "description": "In-browser privacy-span detection with the openai/privacy-filter model via Transformers.js (WebGPU/WASM). No server compute; text never leaves the device.",
+  "keywords": [
+    "privacy",
+    "pii",
+    "redaction",
+    "token-classification",
+    "transformersjs",
+    "browser",
+    "webgpu",
+    "nextjs"
+  ],
+  "homepage": "https://github.com/shiftbloom-studio/openai-privacy-filter-api#readme",
+  "bugs": {
+    "url": "https://github.com/shiftbloom-studio/openai-privacy-filter-api/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiftbloom-studio/openai-privacy-filter-api.git",
+    "directory": "packages/privacy-filter"
+  },
+  "license": "Apache-2.0",
+  "author": "shiftbloom studio",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.2.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

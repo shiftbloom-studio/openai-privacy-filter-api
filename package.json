@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/web"
+    "apps/web",
+    "packages/privacy-filter"
   ],
   "scripts": {
-    "build": "npm --workspace apps/web run build",
+    "build": "npm run build --workspace @shiftbloom/privacy-filter && npm run build --workspace @shiftbloom/privacy-filter-sandbox",
     "lint": "npm --workspace apps/web run lint",
-    "test": "npm --workspace apps/web run test",
-    "typecheck": "npm --workspace apps/web run typecheck"
+    "test": "npm run build --workspace @shiftbloom/privacy-filter && npm run test --workspace @shiftbloom/privacy-filter && npm run test --workspace @shiftbloom/privacy-filter-sandbox",
+    "typecheck": "npm run typecheck --workspace @shiftbloom/privacy-filter && npm run typecheck --workspace @shiftbloom/privacy-filter-sandbox",
+    "verify:model": "node scripts/verify-browser-engine.mjs"
   },
   "engines": {
     "node": ">=24.0.0"

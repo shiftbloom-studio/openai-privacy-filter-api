@@ -33,13 +33,13 @@ jobs:
       - name: Install web dependencies
         run: npm ci
       - name: Lint web
-        run: npm --workspace apps/web run lint
-      - name: Typecheck web
-        run: npm --workspace apps/web run typecheck
-      - name: Test web
-        run: npm --workspace apps/web run test
-      - name: Build web
-        run: npm --workspace apps/web run build
+        run: npm run lint
+      - name: Typecheck web and package
+        run: npm run typecheck
+      - name: Test web and package
+        run: npm test
+      - name: Build web and package
+        run: npm run build
 
   docker:
     runs-on: ubuntu-latest

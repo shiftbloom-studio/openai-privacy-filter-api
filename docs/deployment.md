@@ -31,10 +31,11 @@ workspaces, so Vercel's default `npm install` would find no lockfile inside `app
 | Root Directory | `apps/web` |
 | Framework Preset | Next.js |
 | Install Command | `cd ../.. && npm install` |
-| Build Command | `cd ../.. && npm --workspace apps/web run build` |
+| Build Command | `cd ../.. && npm run build` |
 | Output Directory | `.next` |
 
-Do not use `npm --prefix ../..` for the build: it resolves dependencies but does not change the
+The root `npm run build` builds the `@shiftbloom/privacy-filter` package first and then the Next.js
+app. Do not use `npm --prefix ../..` for the build: it resolves dependencies but does not change the
 workspace root, so `--workspace apps/web` fails with `No workspaces found`.
 
 `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` is pinned to `browser` in `vercel.json`. Set it to `server` only
@@ -51,7 +52,7 @@ cached by the browser.
 
 ```bash
 npm install
-npm --workspace apps/web run build
+npm run build
 npm --workspace apps/web run start
 ```
 

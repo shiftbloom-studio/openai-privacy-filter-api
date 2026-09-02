@@ -1,6 +1,6 @@
-import type { PrivacySpan } from "./privacy-filter";
+import type { PrivacySpan } from "./types";
 
-export const BROWSER_MODEL_ID = "openai/privacy-filter";
+export const MODEL_ID = "openai/privacy-filter";
 
 /**
  * The 8 taxonomy labels, expanded to BIOES boundary tags plus the background
