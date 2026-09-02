@@ -19,7 +19,7 @@ npm run lint
 ```
 
 The root scripts cover both `apps/web` and `packages/privacy-filter`
-(`@shiftbloom/privacy-filter`, the standalone in-browser engine). Web unit tests
+(`@shiftbloom-studio/privacy-filter`, the standalone in-browser engine). Web unit tests
 run against the package source via a Vitest alias, so no dist build is needed
 for the inner loop; `npm run build` produces both the package dist and the
 Next.js production bundle.
@@ -36,7 +36,7 @@ npm run verify:model
 
 ## Releasing the npm package
 
-`@shiftbloom/privacy-filter` publishes from CI, never from a local machine:
+`@shiftbloom-studio/privacy-filter` publishes from CI, never from a local machine:
 
 1. Bump `version` in `packages/privacy-filter/package.json` in a PR and merge it.
 2. Create a GitHub Release (any tag, e.g. `privacy-filter-v0.2.0`).

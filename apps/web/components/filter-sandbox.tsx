@@ -16,7 +16,7 @@ import {
   detectSpansInBrowser,
   spanKey,
   validateFilterRequest
-} from "@shiftbloom/privacy-filter";
+} from "@shiftbloom-studio/privacy-filter";
 
 const EXAMPLE_TEXT =
   "My name is Alice Smith, my email is alice@example.com, and I live in Berlin.";

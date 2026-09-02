@@ -15,7 +15,7 @@ a production policy engine, classifier benchmark, or complete data governance sy
 
 - FastAPI API with `/health` and `/v1/filter`.
 - Next.js sandbox UI for testing sample text and inspecting detected spans.
-- [`@shiftbloom/privacy-filter`](packages/privacy-filter): the in-browser engine as a standalone npm
+- [`@shiftbloom-studio/privacy-filter`](packages/privacy-filter): the in-browser engine as a standalone npm
   package (Transformers.js, WebGPU/WASM) for reuse in other Next.js apps.
 - Two runtimes behind one contract: in-browser (WebGPU/WASM) and server-side (FastAPI).
 - Redaction modes: `mask`, `remove`, and `annotate`.
@@ -34,7 +34,7 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
 - `browser` (default): the model runs in the visitor's browser through
   [Transformers.js](https://huggingface.co/docs/transformers.js), using WebGPU where available and
   falling back to WASM (CPU). The engine lives in the standalone
-  [`@shiftbloom/privacy-filter`](packages/privacy-filter) package. No inference compute is required
+  [`@shiftbloom-studio/privacy-filter`](packages/privacy-filter) package. No inference compute is required
   and input text never leaves the device. Because the weights are about 900 MB, the sandbox asks for
   consent before downloading anything — nothing is fetched until the visitor agrees.
 - `server`: the Next.js server route proxies to the Python FastAPI service.
@@ -69,7 +69,7 @@ apps/
   api/      FastAPI service, Lambda adapter, redaction logic, and tests
   web/      Next.js App Router sandbox, API proxy, and tests
 packages/
-  privacy-filter/  @shiftbloom/privacy-filter — in-browser engine (npm package)
+  privacy-filter/  @shiftbloom-studio/privacy-filter — in-browser engine (npm package)
 infra/
   docker/   API and web Dockerfiles
 docs/       API contract and deployment notes
@@ -78,18 +78,18 @@ docs/       API contract and deployment notes
 ## The npm package
 
 The in-browser engine is published to npm as
-[`@shiftbloom/privacy-filter`](packages/privacy-filter) from this repository (on GitHub Release, via
+[`@shiftbloom-studio/privacy-filter`](packages/privacy-filter) from this repository (on GitHub Release, via
 [publish-package.yml](.github/workflows/publish-package.yml)), so other Next.js (or any
 bundler-based) apps can run the same model client-side:
 
 ```bash
-npm install @shiftbloom/privacy-filter
+npm install @shiftbloom-studio/privacy-filter
 ```
 
 ```tsx
 "use client";
 
-import { applyRedaction, detectSpansInBrowser } from "@shiftbloom/privacy-filter";
+import { applyRedaction, detectSpansInBrowser } from "@shiftbloom-studio/privacy-filter";
 
 const spans = await detectSpansInBrowser(text, { onProgress: setProgress });
 const [filtered] = applyRedaction(text, spans, "mask", "[REDACTED]");
