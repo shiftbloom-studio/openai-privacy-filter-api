@@ -77,9 +77,10 @@ docs/       API contract and deployment notes
 
 ## The npm package
 
-The in-browser engine is published as
-[`@shiftbloom/privacy-filter`](packages/privacy-filter) so other Next.js (or any bundler-based)
-apps can run the same model client-side:
+The in-browser engine is published to npm as
+[`@shiftbloom/privacy-filter`](packages/privacy-filter) from this repository (on GitHub Release, via
+[publish-package.yml](.github/workflows/publish-package.yml)), so other Next.js (or any
+bundler-based) apps can run the same model client-side:
 
 ```bash
 npm install @shiftbloom/privacy-filter
