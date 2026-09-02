@@ -27,6 +27,12 @@ else) — no server inference compute, and input text never leaves the browser.
 npm install @shiftbloom/privacy-filter
 ```
 
+Published from this monorepo by CI: merging a version bump in
+`packages/privacy-filter/package.json` and creating a GitHub Release runs
+[publish-package.yml](../../.github/workflows/publish-package.yml), which
+tests, builds, and publishes the package (skipping versions already on npm).
+Requires the `NPM_TOKEN` repository secret.
+
 The package pins `@huggingface/transformers@4.2.0`, whose per-token output
 shape the span reconstruction is verified against.
 

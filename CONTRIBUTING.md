@@ -34,6 +34,18 @@ cache) and checks span reconstruction end to end:
 npm run verify:model
 ```
 
+## Releasing the npm package
+
+`@shiftbloom/privacy-filter` publishes from CI, never from a local machine:
+
+1. Bump `version` in `packages/privacy-filter/package.json` in a PR and merge it.
+2. Create a GitHub Release (any tag, e.g. `privacy-filter-v0.2.0`).
+3. [publish-package.yml](.github/workflows/publish-package.yml) tests, builds, and publishes the
+   package; versions already on npm are skipped, so re-runs are safe.
+
+One-time setup: create the `shiftbloom` organization on npmjs.com (free for public packages) and
+add an npm granular access token with publish rights as the `NPM_TOKEN` repository secret.
+
 ## Guidelines
 
 1. **API Contracts**: If modifying endpoints, update the API specification in `docs/api.md`.
