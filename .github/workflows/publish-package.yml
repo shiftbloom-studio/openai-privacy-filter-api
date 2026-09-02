@@ -22,6 +22,11 @@ jobs:
         run: npm ci
       - name: Test package
         run: npm run test --workspace @shiftbloom-studio/privacy-filter
+      - name: Verify npm token (manual dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish to npm (skips when the version already exists)
         run: |
           set -euo pipefail
