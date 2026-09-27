@@ -51,7 +51,9 @@ env:
 jobs:
   detect-changes:
     name: Detect changed surfaces
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default
+      labels: [self-hosted, linux, x64]
     outputs:
       api: ${{ steps.detect.outputs.api }}
       web: ${{ steps.detect.outputs.web }}
@@ -134,7 +136,9 @@ jobs:
 
   deploy-api:
     name: Deploy API
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default
+      labels: [self-hosted, linux, x64]
     needs: detect-changes
     if: needs.detect-changes.outputs.api == 'true'
     steps:
@@ -190,7 +194,9 @@ jobs:
 
   deploy-web:
     name: Deploy Web
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default
+      labels: [self-hosted, linux, x64]
     needs: detect-changes
     if: needs.detect-changes.outputs.web == 'true'
     steps:
@@ -247,7 +253,9 @@ jobs:
 
   no-deploy:
     name: No deploy needed
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default
+      labels: [self-hosted, linux, x64]
     needs: detect-changes
     if: needs.detect-changes.outputs.api != 'true' && needs.detect-changes.outputs.web != 'true'
     steps:
