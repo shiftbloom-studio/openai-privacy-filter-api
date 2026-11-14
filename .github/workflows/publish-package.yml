@@ -10,9 +10,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on:
-      group: Default
-      labels: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: actions/setup-node@v6.4.0
