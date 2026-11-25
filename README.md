@@ -37,7 +37,7 @@ The sandbox supports two runtimes selected with `NEXT_PUBLIC_PRIVACY_FILTER_RUNT
   falling back to WASM (CPU). The engine lives in the standalone
   [`@shiftbloom-studio/privacy-filter`](packages/privacy-filter) package. No inference compute is required
   and input text never leaves the device. Because the weights are about 900 MB, the sandbox asks for
-  consent before downloading anything — nothing is fetched until the visitor agrees.
+  consent before downloading anything - nothing is fetched until the visitor agrees.
 - `server`: the Next.js server route proxies to the Python FastAPI service.
 
 ```mermaid
@@ -56,7 +56,7 @@ sandbox behaves identically either way.
 
 The Shiftbloom deployment (`privacy.shiftbloom.studio`) is a static `browser`-runtime build served
 from Cloudflare Workers static assets, because no server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
-maintained for self-hosters — they are simply not deployed for Shiftbloom. See
+maintained for self-hosters - they are simply not deployed for Shiftbloom. See
 [docs/deployment.md](docs/deployment.md).
 
 In `server` mode the browser never calls the model API directly. The Next.js app proxies requests
@@ -70,7 +70,7 @@ apps/
   api/      FastAPI service, Lambda adapter, redaction logic, and tests
   web/      Next.js App Router sandbox, API proxy, and tests
 packages/
-  privacy-filter/  @shiftbloom-studio/privacy-filter — in-browser engine (npm package)
+  privacy-filter/  @shiftbloom-studio/privacy-filter - in-browser engine (npm package)
 infra/
   docker/   API and web Dockerfiles
 docs/       API contract and deployment notes
@@ -97,7 +97,7 @@ const [filtered] = applyRedaction(text, spans, "mask", "[REDACTED]");
 ```
 
 Detection is model-only (no regex/keyword heuristics), long text is chunked for the model's
-257-token window, and the ~900 MB download starts only when you call the engine — gate it behind a
+257-token window, and the ~900 MB download starts only when you call the engine - gate it behind a
 consent prompt. See the [package README](packages/privacy-filter/README.md) for the full API.
 
 ## Requirements
@@ -134,8 +134,8 @@ npm --workspace apps/web run dev
 ```
 
 Open `http://localhost:3000`. Before the first filter runs, the sandbox asks for consent and then
-downloads the model weights — roughly 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer)
-— which the browser caches for later visits.
+downloads the model weights - roughly 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer) -
+which the browser caches for later visits.
 
 ### Server runtime
 

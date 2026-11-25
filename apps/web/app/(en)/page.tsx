@@ -10,7 +10,7 @@ export const metadata = createPageMetadata({
   path: "/"
 });
 
-/* Sprinkles: the sky around the flower — margins only, seven at most,
+/* Sprinkles: the sky around the flower - margins only, seven at most,
    red or ink only, twinkling staggered at 4–5s intervals. */
 const SPRINKLES: Array<{ x: string; y: string; size: number; kind: "spark" | "cross" | "dot"; delay: number }> = [
   { x: "-3%", y: "8%", size: 14, kind: "spark", delay: 0 },

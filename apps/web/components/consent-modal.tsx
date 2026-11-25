@@ -88,7 +88,7 @@ export function ConsentModal({ open, onAccept, onDecline }: ConsentModalProps): 
         <div className="consent-body" id="consent-description">
           <p>
             This sandbox runs the {`"openai/privacy-filter"`} model entirely on your device. Nothing
-            you type is uploaded — but the model weights are downloaded once, about{" "}
+            you type is uploaded - but the model weights are downloaded once, about{" "}
             <strong>{APPROX_DOWNLOAD_MB} MB</strong>, and cached by your browser for future visits.
           </p>
           <ul className="consent-list">
@@ -102,11 +102,11 @@ export function ConsentModal({ open, onAccept, onDecline }: ConsentModalProps): 
             </li>
             <li>
               <strong>Runs on WebGPU or WASM (CPU).</strong> Without WebGPU the
-              model runs on your CPU — slower, but it works in every browser.
+              model runs on your CPU - slower, but it works in every browser.
             </li>
           </ul>
           <p className="consent-note">
-            Prefer not to download anything? The API behind this demo is open source — you can
+            Prefer not to download anything? The API behind this demo is open source - you can
             self-host it instead.
           </p>
         </div>

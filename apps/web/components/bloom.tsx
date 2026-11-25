@@ -25,7 +25,7 @@ const CENTER = 100;
 const SEED_RADIUS = 7; // seed Ø 14
 const SEED_COLOR = "#FF2E52";
 
-// Bloom construction spec — brandbook v2.0, p.5 "The Mark".
+// Bloom construction spec - brandbook v2.0, p.5 "The Mark".
 // Symmetry 36°, four concentric petal rings plus seed. Each ring is rotated
 // by half of its own angular step relative to the previous ring, so petals
 // interleave: 0° → +18° (36°/2) → +22.5° (45°/2) → +30° (60°/2).

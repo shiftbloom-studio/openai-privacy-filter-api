@@ -11,7 +11,7 @@ export const size = {
 };
 export const contentType = "image/png";
 
-/* The Bloom, drawn from the brandbook v2.0 construction spec — same rings as
+/* The Bloom, drawn from the brandbook v2.0 construction spec - same rings as
  * components/bloom.tsx, emitted as a data-URI SVG because ImageResponse
  * (satori) renders <img> but not inline <svg>. */
 const RINGS = [

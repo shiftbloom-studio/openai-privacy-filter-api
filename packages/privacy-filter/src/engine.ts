@@ -6,7 +6,7 @@ import { IGNORE_LABELS, MODEL_ID, normalizeSpans, stripBoundary } from "./labels
  * Backend device preference for the browser runtime, tried in order.
  *
  * transformers.js / onnxruntime-web supports exactly two browser backends:
- * `webgpu` and `wasm`. There is no WebGL backend — WebGL was never an
+ * `webgpu` and `wasm`. There is no WebGL backend - WebGL was never an
  * onnxruntime execution provider, so requesting it can only fail or, worse,
  * fall through silently. WASM runs everywhere (CPU), just slower.
  */
@@ -26,7 +26,7 @@ export const BROWSER_DEFAULT_DTYPE = "q4";
  * `word` includes its leading space in the original text, so character offsets
  * can be reconstructed exactly by walking tokens in order. The aggregated form
  * (aggregation_strategy: "simple") returns entity_group/word/score but NO
- * start/end offsets — it is useless for redaction, which is why the per-token
+ * start/end offsets - it is useless for redaction, which is why the per-token
  * form is used directly.
  */
 export type TokenClassificationToken = {
