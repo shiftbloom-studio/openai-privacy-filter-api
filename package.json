@@ -16,7 +16,7 @@
     "deploy:cloudflare": "wrangler deploy --config apps/web/wrangler.jsonc"
   },
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=26"
   },
   "overrides": {
     "adm-zip": "0.6.1",

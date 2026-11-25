@@ -351,7 +351,7 @@ bundled ONNX Runtime WASM binary (Transformers.js loads it from jsDelivr at run 
 the 25 MiB per-file limit) and writes a `_headers` file.
 
 Shiftbloom builds through Cloudflare Workers Builds connected to this repository: build command
-`npm run build:static`, deploy command `npm run deploy:cloudflare`, `NODE_VERSION=24`. The operator
+`npm run build:static`, deploy command `npm run deploy:cloudflare`, `NODE_VERSION=26`. The operator
 details for the Impressum and privacy policy are set as build variables (see
 [Configuration](#configuration)). The custom domain is attached to the Worker in the Cloudflare
 dashboard, so `wrangler.jsonc` holds no account-specific values.
