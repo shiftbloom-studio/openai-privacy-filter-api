@@ -1,12 +1,5 @@
 # Deployment Notes
 
-> **Preview deployments on PR branches:** Vercel's *Auto-cancel previous
-> deployments* setting (on by default) cancels an in-flight build on the same
-> branch when a new push arrives, and a Redeploy from the dashboard also
-> cancels an in-flight git build. If a preview shows as CANCELED, that is why —
-> redeploy the newest commit and let the build finish without interleaving
-> other actions on the same branch. A preview that is already READY stays up.
-
 The sandbox has two runtimes behind one contract. Pick based on whether you have inference compute:
 
 | Runtime | Inference compute | Where text is processed | Notes |
@@ -17,34 +10,42 @@ The sandbox has two runtimes behind one contract. Pick based on whether you have
 Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** — Next.js inlines `NEXT_PUBLIC_*` into
 the client bundle, so changing it requires a rebuild, not just a restart.
 
-## Vercel — the Shiftbloom deployment
+## Cloudflare Workers — the Shiftbloom deployment
 
-`privacy.shiftbloom.studio` runs on Vercel with the `browser` runtime, so no inference compute is
-provisioned anywhere.
+`privacy.shiftbloom.studio` is a static export of the `browser` runtime, served from Cloudflare
+Workers static assets. No inference compute is provisioned anywhere.
 
-Set **Root Directory** to `apps/web`. Dependencies are hoisted to the monorepo root by npm
-workspaces, so Vercel's default `npm install` would find no lockfile inside `apps/web`. The shipped
-[vercel.json](vercel.json) overrides both commands:
+```bash
+npm install
+npm run build:static       # builds the package, then `next build` with PRIVACY_FILTER_STATIC_EXPORT=1
+npm run deploy:cloudflare  # wrangler deploy --config apps/web/wrangler.jsonc
+```
+
+What `build:static` does:
+
+- `PRIVACY_FILTER_STATIC_EXPORT=1` sets `output: "export"` and drops the `server.ts` page extension,
+  so the server-only proxy in `app/api/filter/route.server.ts` is not part of the build.
+- [scripts/prepare-static-assets.mjs](../scripts/prepare-static-assets.mjs) removes the bundled ONNX
+  Runtime WASM binary from `apps/web/out` (Transformers.js loads it from jsDelivr at run time, and at
+  ~26 MB it exceeds the 25 MiB per-file limit of Workers static assets) and writes `_headers` with
+  security headers and immutable caching for `/_next/static/*`.
+
+For Cloudflare Workers Builds, connect the repository and use:
 
 | Setting | Value |
 | --- | --- |
-| Root Directory | `apps/web` |
-| Framework Preset | Next.js |
-| Install Command | `cd ../.. && npm install` |
-| Build Command | `cd ../.. && npm run build` |
-| Output Directory | `.next` |
+| Root directory | `/` |
+| Build command | `npm run build:static` |
+| Deploy command | `npm run deploy:cloudflare` |
+| Build variables | `NODE_VERSION=24` and the `NEXT_PUBLIC_OPERATOR_*` values |
 
-The root `npm run build` builds the `@shiftbloom-studio/privacy-filter` package first and then the Next.js
-app. Do not use `npm --prefix ../..` for the build: it resolves dependencies but does not change the
-workspace root, so `--workspace apps/web` fails with `No workspaces found`.
-
-`NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` is pinned to `browser` in `vercel.json`. Set it to `server` only
-if you also deploy the API and set `PRIVACY_FILTER_API_URL`.
+Attach the custom domain to the `privacy-filter` Worker in the dashboard (or add a `routes` entry to
+your own copy of `wrangler.jsonc`).
 
 In browser mode the deployment needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal
 token. Visitors download roughly 900 MB once, behind a consent dialog, and the browser caches it.
 
-## In-browser (WebGPU/WASM) — the Shiftbloom deployment on Vercel
+## In-browser (WebGPU/WASM)
 
 This is the default and requires no server-side compute, no model files, and no Python runtime. The
 `q4` ONNX variant of `openai/privacy-filter` is fetched from the Hugging Face CDN on first use and
@@ -157,16 +158,14 @@ The handler wraps the same FastAPI app with `Mangum(app, lifespan="off")`. Use L
 
 ## AWS App Runner (self-hosters only)
 
-The App Runner services in `eu-central-1` are **not** part of the Shiftbloom deployment, and the
-workflow is currently disabled. They are retained for operators who have provisioned inference
-compute and want to run the `server` runtime:
+App Runner is **not** part of the Shiftbloom deployment. The workflow is kept for operators who have
+provisioned inference compute and want to run the `server` runtime. It reads all account-specific
+values from repository variables and skips every job until `AWS_ROLE_TO_ASSUME` is set:
 
-- API service: `privacy-filter-api` (private ECR `privacy-filter-api`)
-- Web service: `privacy-filter-web` (private ECR `privacy-filter-web`)
-- Baked model artifacts bucket: `shiftbloom-privacy-filter-build-000000000000-eu-central-1`
-
-> This workflow is disabled in GitHub Actions. It has not run since 2026-08-18 and is retained only
-> for self-hosters who run the `server` runtime.
+- `AWS_ACCOUNT_ID`, `AWS_ROLE_TO_ASSUME`, optional `AWS_REGION` (default `eu-central-1`)
+- `API_APP_RUNNER_SERVICE_ARN`, `WEB_APP_RUNNER_SERVICE_ARN`
+- `API_ECR_REPOSITORY`, `WEB_ECR_REPOSITORY` (defaults `privacy-filter-api`, `privacy-filter-web`)
+- `MODEL_ARTIFACT_BUCKET` for baked model artifacts
 
 `.github/workflows/deploy-aws.yml` deploys on pushes to `main` and can also be run manually from
 GitHub Actions. It detects changed paths and deploys only the surface that changed:
@@ -177,13 +176,12 @@ GitHub Actions. It detects changed paths and deploys only the surface that chang
 
 ### Relationship to the Shiftbloom deployment
 
-Shiftbloom's production deployment is **Vercel**, not App Runner — see
-[Vercel — the Shiftbloom deployment](#vercel--the-shiftbloom-deployment). There is no server-side
-inference compute, so the App Runner API service is not part of it and the workflow is disabled.
+Shiftbloom's production deployment is a static build on Cloudflare, not App Runner — see
+[Cloudflare Workers — the Shiftbloom deployment](#cloudflare-workers--the-shiftbloom-deployment).
 
 If you enable this workflow for your own fork:
 
-1. Replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC role.
+1. Set the repository variables listed above.
 2. Pushes to `main` then deploy the changed surfaces path-aware — API changes deploy the API
    (App Runner; the same image works on Lambda via the Mangum adapter), web changes deploy the web.
 3. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
@@ -192,35 +190,16 @@ If you enable this workflow for your own fork:
 The web service needs no model artifacts, no `PRIVACY_FILTER_API_URL`, and no internal token in
 browser mode.
 
-Forks should replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC
-role with their own infrastructure.
+GitHub Actions authenticates to AWS with OIDC through the role in `AWS_ROLE_TO_ASSUME`. Restrict its
+trust policy to your repository on `main`. No long-lived AWS access keys are required.
 
-GitHub Actions authenticates to AWS with OIDC through:
+## Cloudflare in front of a server deployment
 
-```text
-arn:aws:iam::000000000000:role/github-actions-openai-privacy-filter-deploy
-```
+This applies only if you run the `server` runtime and put Cloudflare in front of it.
 
-The role trust policy is restricted to `shiftbloom-studio/openai-privacy-filter-api` on `main`.
-No long-lived AWS access keys are required in GitHub secrets.
-
-## Cloudflare (optional)
-
-Cloudflare is **not** required for the Shiftbloom deployment — Vercel serves
-`privacy.shiftbloom.studio` directly. This section applies only if you choose to put Cloudflare in
-front of your own deployment.
-
-Target hostname: `privacy.shiftbloom.studio`.
-
-Recommended routing:
-
-- Point `privacy.shiftbloom.studio` to the deployed Next.js sandbox.
-- In `browser` mode (Shiftbloom default) there is no `/api/filter` traffic — inference happens in the
-  visitor's browser. Allow caching for `/_next/static/*` and for the Hugging Face CDN model files the
-  browser fetches.
-- In `server` mode, keep API calls on `/api/filter`; the Next.js route handler proxies to
-  `PRIVACY_FILTER_API_URL`. Set the same `PRIVACY_FILTER_INTERNAL_TOKEN` on the API and the Next.js
-  app so direct API requests are rejected unless they originate from the server-side proxy, and
-  disable Cloudflare caching for `/api/*`.
+- Point your hostname to the deployed Next.js sandbox.
+- Keep API calls on `/api/filter`; the Next.js route handler proxies to `PRIVACY_FILTER_API_URL`.
+  Set the same `PRIVACY_FILTER_INTERNAL_TOKEN` on the API and the Next.js app so direct API requests
+  are rejected unless they originate from the server-side proxy, and disable caching for `/api/*`.
 - Allow static asset caching for `/_next/static/*`.
 - Keep TLS mode strict and let the deployment platform manage origin certificates.

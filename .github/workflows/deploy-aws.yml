@@ -33,24 +33,25 @@ concurrency:
   group: aws-app-runner-${{ github.ref }}
   cancel-in-progress: false
 
-# Shiftbloom's own deployment is Vercel with in-browser inference, so this
-# workflow is disabled for shiftbloom-studio. It is kept fully functional for
-# forks: enable it, replace the AWS account/ARNs/bucket below with your own,
-# and pushes to main deploy the changed surfaces (API and/or web) path-aware.
+# Optional deployment for self-hosters with inference compute. The Shiftbloom
+# deployment is a static, browser-only build on Cloudflare Workers, so this
+# workflow does nothing unless the repository variables below are set.
+# Configure them under Settings -> Secrets and variables -> Actions -> Variables.
 
 env:
-  AWS_REGION: eu-central-1
-  AWS_ACCOUNT_ID: "000000000000"
-  AWS_ROLE_TO_ASSUME: arn:aws:iam::000000000000:role/github-actions-openai-privacy-filter-deploy
-  API_ECR_REPOSITORY: privacy-filter-api
-  WEB_ECR_REPOSITORY: privacy-filter-web
-  API_APP_RUNNER_SERVICE_ARN: arn:aws:apprunner:eu-central-1:000000000000:service/privacy-filter-api/REDACTED
-  WEB_APP_RUNNER_SERVICE_ARN: arn:aws:apprunner:eu-central-1:000000000000:service/privacy-filter-web/REDACTED
-  MODEL_ARTIFACT_BUCKET: shiftbloom-privacy-filter-build-000000000000-eu-central-1
+  AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
+  API_ECR_REPOSITORY: ${{ vars.API_ECR_REPOSITORY || 'privacy-filter-api' }}
+  WEB_ECR_REPOSITORY: ${{ vars.WEB_ECR_REPOSITORY || 'privacy-filter-web' }}
+  API_APP_RUNNER_SERVICE_ARN: ${{ vars.API_APP_RUNNER_SERVICE_ARN }}
+  WEB_APP_RUNNER_SERVICE_ARN: ${{ vars.WEB_APP_RUNNER_SERVICE_ARN }}
+  MODEL_ARTIFACT_BUCKET: ${{ vars.MODEL_ARTIFACT_BUCKET }}
 
 jobs:
   detect-changes:
     name: Detect changed surfaces
+    if: vars.AWS_ROLE_TO_ASSUME != ''
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.detect.outputs.api }}

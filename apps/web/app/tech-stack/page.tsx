@@ -28,7 +28,7 @@ export default function TechStackPage() {
           )
         },
         {
-          title: "Backend",
+          title: "Backend (optional, self-hosted)",
           body: (
             <ul>
               <li>FastAPI</li>
@@ -42,10 +42,9 @@ export default function TechStackPage() {
           title: "Deployment",
           body: (
             <ul>
-              <li>AWS App Runner in eu-central-1</li>
-              <li>Amazon ECR container images</li>
-              <li>GitHub Actions with OIDC-based AWS deployment</li>
-              <li>Path-aware API and web redeploy workflow</li>
+              <li>Static Next.js export on Cloudflare Workers static assets</li>
+              <li>Model weights served by the Hugging Face CDN, cached in the browser</li>
+              <li>Docker images and an optional AWS App Runner workflow for self-hosters</li>
             </ul>
           )
         }

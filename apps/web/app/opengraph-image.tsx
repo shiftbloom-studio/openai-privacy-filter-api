@@ -2,6 +2,8 @@ import { ImageResponse } from "next/og";
 
 import { defaultDescription, siteName, studioName } from "./seo";
 
+export const dynamic = "force-static";
+
 export const alt = `${siteName} by ${studioName}`;
 export const size = {
   width: 1200,
