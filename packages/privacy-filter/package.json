@@ -21,7 +21,7 @@
     "url": "git+https://github.com/shiftbloom-studio/openai-privacy-filter-api.git",
     "directory": "packages/privacy-filter"
   },
-  "license": "Apache-2.0",
+  "license": "AGPL-3.0-or-later",
   "author": "shiftbloom studio",
   "publishConfig": {
     "access": "public"

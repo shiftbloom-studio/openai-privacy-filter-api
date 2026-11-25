@@ -1,7 +1,7 @@
 # OpenAI Privacy Filter API
 
 [![CI](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/ci.yml/badge.svg)](https://github.com/shiftbloom-studio/openai-privacy-filter-api/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 
 A small, inspectable FastAPI service and Next.js sandbox for running
 [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter). It detects privacy-related
@@ -395,7 +395,14 @@ artifacts.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Copyright (C) 2026 shiftbloom studio.
+
+This project is licensed under the GNU Affero General Public License v3.0 or later
+(AGPL-3.0-or-later). See [LICENSE](LICENSE). Releases and commits before the license change
+on 2026-11-25 remain available under the Apache License 2.0.
+
+The wrapped [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter) model is
+published by OpenAI under the Apache License 2.0 and is not part of this repository.
 
 ## Acknowledgements
 
