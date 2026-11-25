@@ -105,8 +105,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
+    /* The font variables must sit on <html>: globals.css composes --font-display,
+       --font-sans and --font-mono on :root, and a var() that is undefined there
+       makes the composed value invalid for the whole page. */
+    <html lang="en" className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
+      <body>
         {children}
         <SiteFooter />
       </body>
