@@ -7,10 +7,10 @@ The sandbox has two runtimes behind one contract. Pick based on whether you have
 | `browser` (default) | none | visitor's device | WebGPU, else WASM (CPU). Used by the Shiftbloom deployment. |
 | `server` | required | your API host | Next.js proxies `/api/filter` to FastAPI. |
 
-Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** — Next.js inlines `NEXT_PUBLIC_*` into
+Set `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` at **build time** - Next.js inlines `NEXT_PUBLIC_*` into
 the client bundle, so changing it requires a rebuild, not just a restart.
 
-## Cloudflare Workers — the Shiftbloom deployment
+## Cloudflare Workers - the Shiftbloom deployment
 
 `privacy.shiftbloom.studio` is a static export of the `browser` runtime, served from Cloudflare
 Workers static assets. No inference compute is provisioned anywhere.
@@ -65,10 +65,10 @@ docker build -f infra/docker/web.Dockerfile -t privacy-filter-web .
 
 Because inference is client-side:
 
-- Input text never leaves the visitor's device — there is no PII in transit or at rest server-side.
+- Input text never leaves the visitor's device - there is no PII in transit or at rest server-side.
 - The download is about 900 MB (~874 MB of `q4` ONNX weights plus a ~26 MB tokenizer). The sandbox
   shows a consent dialog before fetching any of it; nothing is downloaded on page load. Consent is
-  remembered locally, and declining is a deferral — the visitor can accept on a later attempt.
+  remembered locally, and declining is a deferral - the visitor can accept on a later attempt.
 - Once downloaded, the weights stay in the browser cache, so repeat visits are fast.
 - WebGPU is fastest where supported. Without it the model runs on WASM (CPU): slower, but it works in
   every browser.
@@ -176,13 +176,13 @@ GitHub Actions. It detects changed paths and deploys only the surface that chang
 
 ### Relationship to the Shiftbloom deployment
 
-Shiftbloom's production deployment is a static build on Cloudflare, not App Runner — see
-[Cloudflare Workers — the Shiftbloom deployment](#cloudflare-workers--the-shiftbloom-deployment).
+Shiftbloom's production deployment is a static build on Cloudflare, not App Runner - see
+[Cloudflare Workers - the Shiftbloom deployment](#cloudflare-workers---the-shiftbloom-deployment).
 
 If you enable this workflow for your own fork:
 
 1. Set the repository variables listed above.
-2. Pushes to `main` then deploy the changed surfaces path-aware — API changes deploy the API
+2. Pushes to `main` then deploy the changed surfaces path-aware - API changes deploy the API
    (App Runner; the same image works on Lambda via the Mangum adapter), web changes deploy the web.
 3. The web service builds with `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser` by default. Manual runs
    can select `browser` or `server`.

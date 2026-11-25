@@ -4,10 +4,10 @@ In-browser privacy-span detection with the
 [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter) model via
 [Transformers.js](https://huggingface.co/docs/transformers.js). Detection runs
 entirely on the visitor's device (WebGPU where available, WASM everywhere
-else) — no server inference compute, and input text never leaves the browser.
+else) - no server inference compute, and input text never leaves the browser.
 
 - Real model inference only: spans come from the model's BIOES token
-  classifications — no regex, keyword, or heuristic fallbacks.
+  classifications - no regex, keyword, or heuristic fallbacks.
 - Long-text chunking for the model's 257-token attention window, with seam
   deduplication.
 - Shared contract helpers (`validateFilterRequest`, `applyRedaction`) that
@@ -18,7 +18,7 @@ else) — no server inference compute, and input text never leaves the browser.
 > **Download size:** the q4 model weights plus tokenizer are roughly **900 MB**.
 > They are fetched from the Hugging Face CDN on first use and then served from
 > the browser cache. Always ask for user consent before triggering the first
-> load — nothing downloads until you call `loadBrowserEngine` or
+> load - nothing downloads until you call `loadBrowserEngine` or
 > `detectSpansInBrowser`.
 
 ## Install
@@ -54,7 +54,7 @@ export function FilterButton({ text }: { text: string }) {
   const [progress, setProgress] = useState<LoadProgress | null>(null);
 
   async function run() {
-    // Triggers the ~900 MB model download on first call — ask for consent first.
+    // Triggers the ~900 MB model download on first call - ask for consent first.
     const spans = await detectSpansInBrowser(text, { onProgress: setProgress });
     const [filtered] = applyRedaction(text, spans, "mask", "[REDACTED]");
     console.log(filtered, spans);

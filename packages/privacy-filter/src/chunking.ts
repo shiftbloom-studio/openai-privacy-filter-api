@@ -70,7 +70,7 @@ export function chunkText(
  * Advance `candidate` to the first word boundary in `[candidate, limit]`.
  *
  * `limit` (the previous chunk's break point) is itself always a boundary, so
- * the search always succeeds — falling through to it only costs overlap in
+ * the search always succeeds - falling through to it only costs overlap in
  * pathologically long words, never correctness. Unbroken runs with no
  * whitespace at all return `candidate` unchanged, keeping the loop progressing.
  */

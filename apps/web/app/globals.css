@@ -1,26 +1,26 @@
 /*
-  shiftbloom studio — Brand v2.0 design tokens.
+  shiftbloom studio - Brand v2.0 design tokens.
   Source of truth: Brand Book v2.0 ("the spec is the drawing").
-  White mode only. The gradient lives inside the mark and its petals —
+  White mode only. The gradient lives inside the mark and its petals -
   never on UI, buttons, banners or type.
 */
 
 :root {
-  --bloom: #ff2e52; /* Bloom Red — petals, seeds, CTAs, links, full-caps statements */
-  --root: #c81040; /* Root Red — hover states, small red text */
-  --petal: #ff8fab; /* Petal Pink — gradient tip, highlights on red fields */
-  --blush: #ffe9ef; /* Blush — tags, tints, selection fills */
-  --ink: #1a1216; /* Ink — body text, wordmark glyphs */
-  --paper: #ffffff; /* Paper — the default */
+  --bloom: #ff2e52; /* Bloom Red - petals, seeds, CTAs, links, full-caps statements */
+  --root: #c81040; /* Root Red - hover states, small red text */
+  --petal: #ff8fab; /* Petal Pink - gradient tip, highlights on red fields */
+  --blush: #ffe9ef; /* Blush - tags, tints, selection fills */
+  --ink: #1a1216; /* Ink - body text, wordmark glyphs */
+  --paper: #ffffff; /* Paper - the default */
   --paper-warm: #faf6f4; /* warm panel variant */
   --ink-65: color-mix(in srgb, var(--ink) 65%, transparent);
   --ink-40: color-mix(in srgb, var(--ink) 40%, transparent);
   --line: color-mix(in srgb, var(--ink) 10%, transparent);
 
-  /* The Bloom Ease — the default entrance. The curve dips below its start:
+  /* The Bloom Ease - the default entrance. The curve dips below its start:
      that's the overshoot. */
   --ease-bloom: cubic-bezier(0.22, 1.1, 0.36, 1);
-  /* Settle — the default exit. Calm, no bounce. */
+  /* Settle - the default exit. Calm, no bounce. */
   --ease-settle: cubic-bezier(0.4, 0, 0.2, 1);
 
   --font-display: var(--font-clash), "Clash Display", ui-sans-serif, system-ui, sans-serif;
@@ -69,7 +69,7 @@ textarea {
   outline-offset: 2px;
 }
 
-/* ── Typography — three voices, one register ─────────────
+/* ── Typography - three voices, one register ─────────────
    Clash Display = statements · General Sans = explaining · JetBrains Mono = truth */
 
 .display,
@@ -85,7 +85,7 @@ textarea {
   line-height: 1.02; /* tight on display */
 }
 
-/* The label voice — uppercase mono, +16% tracking. It whispers, never shouts. */
+/* The label voice - uppercase mono, +16% tracking. It whispers, never shouts. */
 .label-mono,
 label,
 .result-label,
@@ -119,7 +119,7 @@ label,
 /* ── Header: the wordmark ───────────────────────────────
    "shiftbloom" display semibold · lowercase · tracking −2%.
    "studio" display regular · 60% ink · never translated.
-   The seed — the period. Always Bloom Red. */
+   The seed - the period. Always Bloom Red. */
 
 .site-header {
   display: flex;
@@ -173,7 +173,7 @@ label,
   font-weight: 600;
 }
 
-/* The seed period belongs to "studio" — no gap before it. */
+/* The seed period belongs to "studio" - no gap before it. */
 .brand-wordmark .seed {
   margin-left: -0.28em;
 }
@@ -251,7 +251,7 @@ label,
   opacity: 0.55;
 }
 
-/* The quiet button — ink on paper. */
+/* The quiet button - ink on paper. */
 .tertiary-btn,
 .ghost-button {
   display: inline-flex;
@@ -337,7 +337,7 @@ label,
   color: var(--ink);
 }
 
-/* Flat Bloom Red — the gradient never lands on type. */
+/* Flat Bloom Red - the gradient never lands on type. */
 .extension-headline .headline-accent,
 .docs-hero h1 {
   color: var(--bloom);
@@ -464,7 +464,7 @@ label,
   transform-origin: center;
 }
 
-/* ── Sprinkles — the sky around the flower ──────────────
+/* ── Sprinkles - the sky around the flower ──────────────
    Spark, cross, dot. Margins only, ≤7 per view, red or ink only.
    They twinkle at 4–5s intervals, staggered. */
 
@@ -747,7 +747,7 @@ mark {
   margin-top: 18px;
 }
 
-/* Code blocks: ink panels, 15.9:1 — a sanctioned pairing. */
+/* Code blocks: ink panels, 15.9:1 - a sanctioned pairing. */
 .code-block {
   overflow-x: auto;
   border-radius: 10px;
@@ -815,7 +815,7 @@ mark {
   line-height: 1.7;
 }
 
-/* Seed bullets — every bullet is a seven-pixel seed. */
+/* Seed bullets - every bullet is a seven-pixel seed. */
 .legal-card ul,
 .seed-list {
   margin: 0;

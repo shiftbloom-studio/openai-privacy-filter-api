@@ -41,6 +41,6 @@ export function getFilterRuntime(): FilterRuntime {
   return resolveFilterRuntime(process.env.NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME);
 }
 
-/* The browser engine itself — including the device preference chain (WebGPU,
- * then WASM) and the q4 dtype default — lives in the
+/* The browser engine itself - including the device preference chain (WebGPU,
+ * then WASM) and the q4 dtype default - lives in the
  * `@shiftbloom-studio/privacy-filter` package (packages/privacy-filter). */

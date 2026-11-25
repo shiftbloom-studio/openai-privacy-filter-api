@@ -50,7 +50,7 @@ describe("tokensToSpans", () => {
   it("trims leading/trailing whitespace off span boundaries", () => {
     const tokens = [token("B-private_person", " Alice"), token("E-private_person", " Smith")];
     const spans = tokensToSpans(tokens, TEXT);
-    // The B token word is " Alice" — the span must not include that space.
+    // The B token word is " Alice" - the span must not include that space.
     expect(spans[0].text.startsWith(" ")).toBe(false);
   });
 
