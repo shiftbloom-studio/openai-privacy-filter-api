@@ -12,7 +12,7 @@ export function SiteHeader(): ReactNode {
   return (
     <header className="site-header">
       <a className="site-brand" href="https://shiftbloom.studio/#hero" aria-label="Open shiftbloom studio">
-        <Bloom className="brand-logo" size={34} variant="solid" />
+        <Bloom className="brand-logo" size={30} />
         <span className="brand-wordmark">
           <span>shiftbloom</span>
           <span className="studio">studio</span>
