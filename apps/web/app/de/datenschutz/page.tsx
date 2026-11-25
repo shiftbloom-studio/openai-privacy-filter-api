@@ -8,6 +8,7 @@ export const metadata = createPageMetadata({
   description:
     "Datenschutzerklärung der OpenAI Privacy Filter Sandbox: Verarbeitung im Browser, Hosting und Modell-Download.",
   path: "/de/datenschutz",
+  languages: { en: "/privacy", de: "/de/datenschutz" },
   imageAlt: "Datenschutzerklärung der OpenAI Privacy Filter Sandbox"
 });
 

@@ -1,0 +1,24 @@
+# OpenAI Privacy Filter Sandbox
+
+> A free browser sandbox for openai/privacy-filter, OpenAI's open-weight model that finds personal data in text. The model runs in the visitor's browser with Transformers.js (WebGPU, or WebAssembly on the CPU), so the text never leaves the device. The first run downloads about 900 MB of model weights after the visitor agrees; the browser caches them for later visits.
+
+- No account, no cookies, no server-side processing on privacy.shiftbloom.studio.
+- Source, self-hosting guide and an optional FastAPI backend: https://github.com/shiftbloom-studio/openai-privacy-filter-api
+- Licensed AGPL-3.0-or-later. Made by shiftbloom studio: https://shiftbloom.studio
+- Model card: https://huggingface.co/openai/privacy-filter
+
+## What it detects
+
+The model returns spans with one of eight labels: private_person, private_email, private_phone, private_address, private_url, private_date, account_number, secret.
+
+## Redaction modes
+
+- mask: replaces each span with a mask token, [REDACTED] by default.
+- remove: deletes each span from the text.
+- annotate: keeps the text and wraps each span with its label, for example [private_email:alice@example.com].
+
+## Pages
+
+- [Sandbox](https://privacy.shiftbloom.studio/): paste text, pick a mode, see the filtered text and every detected span.
+- [API notes](https://privacy.shiftbloom.studio/docs): endpoints and request fields for running the model behind your own API (GET /health, POST /v1/filter).
+- [Tech stack](https://privacy.shiftbloom.studio/tech-stack): what the sandbox and the optional backend are built with.

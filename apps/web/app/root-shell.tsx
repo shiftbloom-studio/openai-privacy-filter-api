@@ -5,7 +5,17 @@ import localFont from "next/font/local";
 import { SiteFooter } from "@/components/site-footer";
 
 import "./globals.css";
-import { defaultDescription, defaultTitle, keywords, siteName, siteUrl, socialImage, studioName } from "./seo";
+import {
+  defaultDescription,
+  defaultTitle,
+  keywords,
+  siteName,
+  siteUrl,
+  socialImage,
+  structuredData,
+  studioName,
+  studioUrl
+} from "./seo";
 
 /* Three voices, one register (Brand Book v2.0):
    Clash Display = statements · General Sans = explaining · JetBrains Mono = truth. */
@@ -30,7 +40,9 @@ const jetbrainsMono = localFont({
   display: "swap"
 });
 
-export const metadata: Metadata = {
+/* Shared by the two root layouts, app/(en) and app/de, which exist only so
+   that <html lang> matches the language of each page. */
+export const sharedMetadata: Metadata = {
   metadataBase: siteUrl,
   title: {
     default: defaultTitle,
@@ -38,7 +50,7 @@ export const metadata: Metadata = {
   },
   description: defaultDescription,
   applicationName: siteName,
-  authors: [{ name: studioName, url: "https://shiftbloom.studio" }],
+  authors: [{ name: studioName, url: studioUrl }],
   creator: studioName,
   publisher: studioName,
   keywords,
@@ -96,20 +108,25 @@ export const metadata: Metadata = {
   }
 };
 
-export const viewport: Viewport = {
+export const sharedViewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#ffffff",
   colorScheme: "light"
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export function RootShell({ lang, children }: { lang: "en" | "de"; children: ReactNode }) {
   return (
     /* The font variables must sit on <html>: globals.css composes --font-display,
        --font-sans and --font-mono on :root, and a var() that is undefined there
        makes the composed value invalid for the whole page. */
-    <html lang="en" className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang={lang} className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
       <body>
+        <script
+          type="application/ld+json"
+          // JSON.stringify output is safe here: the graph holds only static strings.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c") }}
+        />
         {children}
         <SiteFooter />
       </body>
