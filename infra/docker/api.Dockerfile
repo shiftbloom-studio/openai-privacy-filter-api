@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.12-slim AS builder
+FROM docker.io/library/python:3.12-slim AS builder
 
 ARG API_EXTRAS=inference
 WORKDIR /build
@@ -17,7 +17,7 @@ RUN if [ "$API_EXTRAS" = "inference" ]; then \
       true; \
     fi
 
-FROM public.ecr.aws/docker/library/python:3.12-slim AS runtime
+FROM docker.io/library/python:3.12-slim AS runtime
 
 ARG API_EXTRAS=inference
 ARG PRIVACY_FILTER_MODEL_ID=openai/privacy-filter

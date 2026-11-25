@@ -11,13 +11,18 @@
     "lint": "npm --workspace apps/web run lint",
     "test": "npm run build --workspace @shiftbloom-studio/privacy-filter && npm run test --workspace @shiftbloom-studio/privacy-filter && npm run test --workspace @shiftbloom-studio/privacy-filter-sandbox",
     "typecheck": "npm run typecheck --workspace @shiftbloom-studio/privacy-filter && npm run typecheck --workspace @shiftbloom-studio/privacy-filter-sandbox",
-    "verify:model": "node scripts/verify-browser-engine.mjs"
+    "verify:model": "node scripts/verify-browser-engine.mjs",
+    "build:static": "npm run build --workspace @shiftbloom-studio/privacy-filter && PRIVACY_FILTER_STATIC_EXPORT=1 npm run build --workspace @shiftbloom-studio/privacy-filter-sandbox && node scripts/prepare-static-assets.mjs",
+    "deploy:cloudflare": "wrangler deploy --config apps/web/wrangler.jsonc"
   },
   "engines": {
     "node": ">=24.0.0"
   },
   "overrides": {
-    "adm-zip": "0.6.0",
+    "adm-zip": "0.6.1",
     "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "wrangler": "4.168.0"
   }
 }
