@@ -5,7 +5,17 @@ import localFont from "next/font/local";
 import { SiteFooter } from "@/components/site-footer";
 
 import "./globals.css";
-import { defaultDescription, defaultTitle, keywords, siteName, siteUrl, socialImage, studioName } from "./seo";
+import {
+  defaultDescription,
+  defaultTitle,
+  keywords,
+  siteName,
+  siteUrl,
+  socialImage,
+  structuredData,
+  studioName,
+  studioUrl
+} from "./seo";
 
 /* Three voices, one register (Brand Book v2.0):
    Clash Display = statements · General Sans = explaining · JetBrains Mono = truth. */
@@ -38,7 +48,7 @@ export const metadata: Metadata = {
   },
   description: defaultDescription,
   applicationName: siteName,
-  authors: [{ name: studioName, url: "https://shiftbloom.studio" }],
+  authors: [{ name: studioName, url: studioUrl }],
   creator: studioName,
   publisher: studioName,
   keywords,
@@ -110,6 +120,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
        makes the composed value invalid for the whole page. */
     <html lang="en" className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
       <body>
+        <script
+          type="application/ld+json"
+          // JSON.stringify output is safe here: the graph holds only static strings.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c") }}
+        />
         {children}
         <SiteFooter />
       </body>

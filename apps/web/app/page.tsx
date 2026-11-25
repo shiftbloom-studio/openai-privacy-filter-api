@@ -7,7 +7,7 @@ import { createPageMetadata } from "./seo";
 export const metadata = createPageMetadata({
   title: "OpenAI Privacy Filter Sandbox for PII Redaction",
   description:
-    "Test OpenAI's openai/privacy-filter model with browser-based PII detection, redaction modes, detected spans, and server-side API proxying.",
+    "Run OpenAI's openai/privacy-filter model in your browser to find names, emails, phone numbers, addresses and secrets in text, then mask or remove them. The text never leaves your device.",
   path: "/"
 });
 
@@ -56,7 +56,7 @@ export default function Home() {
           <Sprinkle key={`${sprinkle.x}-${sprinkle.y}`} {...sprinkle} />
         ))}
         <h1 className="extension-headline" id="page-title">
-          <span className="headline-word">OpenAI privacy filter</span>
+          <span className="headline-word">OpenAI privacy filter</span>{" "}
           <span className="headline-accent">sandbox.</span>
         </h1>
         <p className="extension-copy">
