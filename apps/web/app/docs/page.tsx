@@ -5,7 +5,7 @@ import { createPageMetadata } from "../seo";
 export const metadata = createPageMetadata({
   title: "OpenAI Privacy Filter API Notes",
   description:
-    "Review the Shiftbloom sandbox API contract for OpenAI privacy filtering, including endpoints, request fields, redaction modes, and supported labels.",
+    "Endpoints, request fields, redaction modes and the eight labels you get when you run openai/privacy-filter behind your own API.",
   path: "/docs",
   imageAlt: "API notes for the OpenAI Privacy Filter Sandbox"
 });
