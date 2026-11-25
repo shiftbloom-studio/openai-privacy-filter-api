@@ -23,7 +23,10 @@ export function SiteFooter({ lang = "en" }: { lang?: "en" | "de" }): ReactNode {
       <div className="footer-inner">
         <div className="footer-copy">
           <strong>
-            <a href="https://shiftbloom.studio">shiftbloom studio.</a>
+            <a href="https://shiftbloom.studio">
+              shiftbloom <span className="studio">studio</span>
+              <span className="seed-period">.</span>
+            </a>
           </strong>
           <span>
             {de ? "Open Source unter AGPL-3.0-or-later. " : "Open source under AGPL-3.0-or-later. "}
