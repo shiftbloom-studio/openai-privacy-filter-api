@@ -1,8 +1,11 @@
 import { ReactNode } from "react";
 
+import { operator } from "@/lib/operator";
+
 const legalLinks = [
   { href: "/impressum", label: "Impressum" },
   { href: "/privacy", label: "Privacy Policy" },
+  { href: "/de/datenschutz", label: "Datenschutz" },
   { href: "/tech-stack", label: "Tech Stack" }
 ];
 
@@ -13,7 +16,7 @@ export function SiteFooter(): ReactNode {
         <div className="footer-copy">
           <strong>shiftbloom studio.</strong>
           <span>OpenAI Privacy Filter Sandbox</span>
-          <span>Hamburg, Germany</span>
+          {operator.location ? <span>{operator.location}</span> : null}
         </div>
         <nav className="footer-links" aria-label="Legal links">
           {legalLinks.map((link) => (

@@ -11,15 +11,19 @@ export function LegalPage({
   eyebrow,
   title,
   description,
-  sections
+  sections,
+  lang = "en",
+  alternate
 }: {
   eyebrow: string;
   title: string;
   description: string;
   sections: LegalSection[];
+  lang?: "en" | "de";
+  alternate?: { href: string; label: string };
 }): ReactNode {
   return (
-    <main className="extension-shell legal-shell" id="main-content">
+    <main className="extension-shell legal-shell" id="main-content" lang={lang}>
       <SiteHeader />
       <section className="legal-hero">
         <div className="extension-topline" aria-label="Legal page context">
@@ -27,6 +31,11 @@ export function LegalPage({
             Sandbox
           </a>
           <span className="context-mark">{eyebrow}</span>
+          {alternate ? (
+            <a className="studio-link" href={alternate.href} hrefLang={lang === "en" ? "de" : "en"}>
+              {alternate.label}
+            </a>
+          ) : null}
         </div>
         <h1>{title}</h1>
         <p>{description}</p>

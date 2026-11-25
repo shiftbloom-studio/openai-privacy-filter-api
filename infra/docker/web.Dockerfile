@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:24-alpine AS deps
+FROM docker.io/library/node:24-alpine AS deps
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -6,7 +6,7 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/privacy-filter/package.json packages/privacy-filter/package.json
 RUN npm ci
 
-FROM public.ecr.aws/docker/library/node:24-alpine AS builder
+FROM docker.io/library/node:24-alpine AS builder
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -21,7 +21,7 @@ ARG NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=browser
 ENV NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME=$NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME
 RUN npm run build
 
-FROM public.ecr.aws/docker/library/node:24-alpine AS runner
+FROM docker.io/library/node:24-alpine AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production \

@@ -1,0 +1,15 @@
+{
+  // Static, browser-only deployment on Cloudflare Workers static assets.
+  // Build first with `npm run build:static` from the repository root.
+  // Attach your own domain in the Cloudflare dashboard or add a `routes` entry.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "privacy-filter",
+  "compatibility_date": "2026-11-25",
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "workers_dev": false,
+  "preview_urls": false
+}

@@ -47,8 +47,9 @@ export default function DocsPage() {
         </div>
         <h1>Minimal surface. Clear contracts.</h1>
         <p>
-          The public sandbox calls a server-side Next.js proxy at <code>/api/filter</code>. The
-          underlying FastAPI service is protected for server-side traffic and wraps OpenAI's{" "}
+          The public sandbox runs the model in your browser. Self-hosted server deployments call a
+          Next.js proxy at <code>/api/filter</code> instead. The FastAPI service behind it accepts
+          server-side traffic only and wraps OpenAI's{" "}
           <a href="https://huggingface.co/openai/privacy-filter">openai/privacy-filter</a> model.
         </p>
       </section>
