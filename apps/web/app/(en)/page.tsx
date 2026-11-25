@@ -2,7 +2,7 @@ import { Bloom } from "@/components/bloom";
 import { FilterSandbox } from "@/components/filter-sandbox";
 import { SiteHeader } from "@/components/site-header";
 
-import { createPageMetadata } from "./seo";
+import { createPageMetadata } from "../seo";
 
 export const metadata = createPageMetadata({
   title: "OpenAI Privacy Filter Sandbox for PII Redaction",
