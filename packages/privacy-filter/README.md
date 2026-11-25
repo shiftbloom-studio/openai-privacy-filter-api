@@ -134,4 +134,6 @@ npm run verify:model
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+AGPL-3.0-or-later. See [LICENSE](LICENSE). Versions published before 2026-11-25 remain available
+under the Apache License 2.0. The `openai/privacy-filter` model weights are licensed by OpenAI under
+the Apache License 2.0 and are downloaded at run time, not bundled.
