@@ -183,7 +183,50 @@ describe("FilterSandbox", () => {
 
       await waitFor(() => expect(screen.getByText("private_email")).toBeVisible());
       expect(screen.getByRole("button", { name: "Run privacy filter" })).toBeEnabled();
-      expect(screen.getByText(/In-browser model ready \(wasm\)/)).toBeVisible();
+      expect(screen.getByText(/Model ready on your CPU \(WebAssembly\)/)).toBeVisible();
+    });
+
+    it("shows the model download in megabytes while it loads", async () => {
+      consent.hasStoredConsent.mockReturnValue(true);
+      vi.stubGlobal("fetch", vi.fn());
+      let finish: () => void = () => undefined;
+      browserEngine.detectSpansInBrowser.mockImplementation(
+        async (
+          _text: string,
+          options?: {
+            onProgress?: (progress: {
+              stage: "loading" | "ready";
+              percent: number | null;
+              detail: string;
+              loadedBytes?: number;
+              totalBytes?: number;
+            }) => void;
+          }
+        ) => {
+          options?.onProgress?.({
+            stage: "loading",
+            percent: 36,
+            detail: "downloading model",
+            loadedBytes: 312_000_000,
+            totalBytes: 874_000_000
+          });
+          await new Promise<void>((resolve) => {
+            finish = resolve;
+          });
+          return BROWSER_SPANS;
+        }
+      );
+      render(<FilterSandbox />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Run privacy filter" }));
+
+      expect(await screen.findByText("312 MB of 874 MB")).toBeVisible();
+      expect(screen.getByRole("progressbar", { name: "Model download" })).toHaveAttribute(
+        "aria-valuenow",
+        "36"
+      );
+      finish();
+      await waitFor(() => expect(screen.getByText("private_email")).toBeVisible());
     });
 
     it("renders redacted output for the sample text", async () => {

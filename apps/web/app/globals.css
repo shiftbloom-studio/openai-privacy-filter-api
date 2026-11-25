@@ -215,11 +215,6 @@ label,
   transform: scale(1);
 }
 
-.nav-cta {
-  padding: 10px 18px;
-  font-size: 0.95rem;
-}
-
 /* ── Buttons ────────────────────────────────────────────
    One red button. Flat Bloom Red, no gradient, no glow. Root on hover. */
 
@@ -230,7 +225,7 @@ label,
   justify-content: center;
   gap: 0.5rem;
   border: 0;
-  border-radius: 0.25rem;
+  border-radius: 9999px;
   padding: 0.85rem 1.75rem;
   background: var(--bloom);
   color: #fff;
@@ -257,7 +252,7 @@ label,
   align-items: center;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
-  border-radius: 0.25rem;
+  border-radius: 9999px;
   padding: 0.85rem 1.75rem;
   background: transparent;
   color: var(--ink);
@@ -321,7 +316,7 @@ label,
 .docs-hero h1 {
   margin: 0;
   color: var(--ink);
-  font-size: clamp(2.8rem, 7vw, 5.25rem);
+  font-size: clamp(2.4rem, 5.6vw, 4.25rem);
   font-weight: 600;
 }
 
@@ -378,23 +373,75 @@ label,
   margin-top: 34px;
 }
 
-/* The hero bloom — the only place the gradient lives. It breathes. */
-.hero-bloom {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: none;
+/* What the app makes, right in the hero: one redacted line. */
+.hero-example {
+  display: block;
+  max-width: 740px;
+  margin: 24px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--paper-warm);
+  color: var(--ink);
+  line-height: 1.9;
 }
 
-@media (min-width: 900px) {
-  .hero-bloom {
-    display: block;
-  }
+.hero-example-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink-65);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
-  /* Keep the wrapped headline clear of the 180px mark. */
-  .extension-hero {
-    padding-right: 210px;
+/* ── Model download progress ──────────────────────────── */
+
+.model-progress {
+  width: min(100%, 360px);
+  text-align: left;
+}
+
+.model-progress-bar {
+  overflow: hidden;
+  height: 8px;
+  margin: 14px 0 10px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.model-progress-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--bloom);
+  transition: width 240ms var(--ease-settle);
+}
+
+.model-progress-bar.is-indeterminate > span {
+  width: 30%;
+  animation: progress-slide 1.4s var(--ease-settle) infinite;
+}
+
+@keyframes progress-slide {
+  from {
+    transform: translateX(-100%);
   }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.model-progress p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.model-progress .model-progress-bytes {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
 }
 
 @keyframes breathe {
@@ -418,6 +465,7 @@ label,
 .sprinkle {
   position: absolute;
   pointer-events: none;
+  z-index: -1;
   animation: sprinkle-twinkle 4.6s var(--ease-settle) infinite;
 }
 
@@ -950,18 +998,14 @@ mark {
     gap: 14px 22px;
   }
 
-  .site-nav .nav-cta {
-    margin-left: auto;
-  }
-
-  .extension-actions,
+  .site-nav   .extension-actions,
   .control-row {
     align-items: stretch;
     flex-direction: column;
   }
 
   .extension-hero {
-    padding-top: 42px;
+    padding-top: 12px;
   }
 
   .sandbox-grid,
@@ -986,6 +1030,13 @@ mark {
   }
 }
 
+/* Phones have no margins to spare: sprinkles would land on the text. */
+@media (max-width: 640px) {
+  .sprinkle {
+    display: none;
+  }
+}
+
 /* ── Reduced motion ───────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -997,7 +1048,8 @@ mark {
   }
 
   .breathe,
-  .sprinkle {
+  .sprinkle,
+  .model-progress-bar.is-indeterminate > span {
     animation: none;
   }
 }

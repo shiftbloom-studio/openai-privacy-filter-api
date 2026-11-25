@@ -56,6 +56,24 @@ describe("loadBrowserEngine", () => {
     expect(events.at(-1)).toMatchObject({ stage: "ready", percent: 100 });
   });
 
+  it("reports summed download progress in bytes and ignores per-file events", async () => {
+    pipelineMock.mockImplementation(
+      async (_task: string, _model: string, options?: { progress_callback?: (event: unknown) => void }) => {
+        options?.progress_callback?.({ status: "progress", file: "model.onnx_data", loaded: 10, total: 100 });
+        options?.progress_callback?.({ status: "progress_total", progress: 25, loaded: 250, total: 1000 });
+        return classifyMock;
+      }
+    );
+    const events: LoadProgress[] = [];
+    await loadBrowserEngine({ onProgress: (progress) => events.push(progress) });
+
+    const downloads = events.filter((event) => event.loadedBytes !== undefined);
+    expect(downloads).toEqual([
+      { stage: "loading", percent: 25, detail: "downloading model", loadedBytes: 250, totalBytes: 1000 }
+    ]);
+    expect(events.some((event) => event.detail === "model.onnx_data")).toBe(false);
+  });
+
   it("falls back to the next device when the preferred one fails", async () => {
     pipelineMock
       .mockRejectedValueOnce(new Error("no webgpu adapter"))

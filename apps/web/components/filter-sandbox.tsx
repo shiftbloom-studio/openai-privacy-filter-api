@@ -18,6 +18,16 @@ import {
   validateFilterRequest
 } from "@shiftbloom-studio/privacy-filter";
 
+const MODE_LABELS: Record<FilterMode, string> = {
+  mask: "Mask: swap each find for a token",
+  remove: "Remove: cut each find out",
+  annotate: "Annotate: show the label next to it"
+};
+
+function formatMegabytes(bytes: number): string {
+  return `${Math.round(bytes / 1_000_000).toLocaleString("en-US")} MB`;
+}
+
 const EXAMPLE_TEXT =
   "My name is Alice Smith, my email is alice@example.com, and I live in Berlin.";
 
@@ -30,6 +40,58 @@ type PendingRequest = {
   include_spans: boolean;
 };
 
+function activeDeviceLabel(detail: string): string {
+  if (detail.includes("webgpu")) {
+    return "your GPU (WebGPU)";
+  }
+  if (detail.includes("wasm")) {
+    return "your CPU (WebAssembly)";
+  }
+  return "this device";
+}
+
+function ModelProgress({
+  progress,
+  bytes
+}: {
+  progress: LoadProgress;
+  bytes: { loaded: number; total: number } | null;
+}): ReactNode {
+  const percent = bytes ? Math.min(100, (bytes.loaded / bytes.total) * 100) : null;
+  const finishing = bytes !== null && bytes.loaded >= bytes.total;
+  return (
+    <div className="model-progress" role="status">
+      <p>
+        <strong>
+          {finishing
+            ? "Almost there, starting the model"
+            : bytes
+              ? "Downloading the model"
+              : progress.detail === "loading runtime"
+                ? "Getting the runtime ready"
+                : "Fetching the model files"}
+        </strong>
+      </p>
+      <div
+        className={`model-progress-bar${percent === null || finishing ? " is-indeterminate" : ""}`}
+        role="progressbar"
+        aria-label="Model download"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent === null ? undefined : Math.round(percent)}
+      >
+        <span style={percent === null || finishing ? undefined : { width: `${percent}%` }} />
+      </div>
+      {bytes ? (
+        <p className="model-progress-bytes">
+          {formatMegabytes(bytes.loaded)} of {formatMegabytes(bytes.total)}
+        </p>
+      ) : null}
+      <p>This happens once. Your browser keeps the files for next time.</p>
+    </div>
+  );
+}
+
 export function FilterSandbox(): ReactNode {
   const [text, setText] = useState(EXAMPLE_TEXT);
   const [mode, setMode] = useState<FilterMode>("mask");
@@ -40,6 +102,7 @@ export function FilterSandbox(): ReactNode {
   const [isLoading, setIsLoading] = useState(false);
   const [runtime] = useState<Runtime>(getFilterRuntime);
   const [modelProgress, setModelProgress] = useState<LoadProgress | null>(null);
+  const [downloadBytes, setDownloadBytes] = useState<{ loaded: number; total: number } | null>(null);
   const [consentOpen, setConsentOpen] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<PendingRequest | null>(null);
 
@@ -66,6 +129,9 @@ export function FilterSandbox(): ReactNode {
       setResult(
         await runFilter(request, runtime, (progress) => {
           setModelProgress(progress);
+          if (progress.loadedBytes !== undefined && progress.totalBytes) {
+            setDownloadBytes({ loaded: progress.loadedBytes, total: progress.totalBytes });
+          }
         })
       );
     } catch (caughtError) {
@@ -129,7 +195,7 @@ export function FilterSandbox(): ReactNode {
             >
               {FILTER_MODES.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {MODE_LABELS[item]}
                 </option>
               ))}
             </select>
@@ -166,13 +232,14 @@ export function FilterSandbox(): ReactNode {
               Load sample
             </button>
           </div>
-          {runtime === "browser" && modelProgress ? (
+          {runtime === "browser" && modelProgress?.stage === "ready" ? (
             <p className="runtime-note" role="status">
-              {modelProgress.stage === "loading"
-                ? `In-browser model: ${modelProgress.detail}`
-                : modelProgress.stage === "ready"
-                  ? `In-browser model ${modelProgress.detail} — text never leaves your device.`
-                  : "In-browser model unavailable. Reload to retry."}
+              Model ready on {activeDeviceLabel(modelProgress.detail)}. Your text stays on this device.
+            </p>
+          ) : null}
+          {runtime === "browser" && modelProgress?.stage === "error" ? (
+            <p className="error-message" role="status">
+              The model didn&apos;t load. Check your connection and reload the page to try again.
             </p>
           ) : null}
           {error ? <p className="error-message">{error}</p> : null}
@@ -211,12 +278,18 @@ export function FilterSandbox(): ReactNode {
             </>
           ) : (
             <div className="placeholder">
-              <span aria-hidden="true">∞</span>
-              <p>
-                {runtime === "browser"
-                  ? "Results appear here once the in-browser model is ready."
-                  : "Results appear here after the API responds."}
-              </p>
+              {browserBusy && modelProgress ? (
+                <ModelProgress progress={modelProgress} bytes={downloadBytes} />
+              ) : (
+                <>
+                  <span aria-hidden="true">∞</span>
+                  <p>
+                    {runtime === "browser"
+                      ? "Your filtered text shows up here."
+                      : "Results appear here after the API responds."}
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
