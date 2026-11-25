@@ -6,6 +6,7 @@ Please do **not** report security vulnerabilities in public issues.
 
 Report them through a private GitHub security advisory:
 <https://github.com/shiftbloom-studio/openai-privacy-filter-api/security/advisories/new>
+or by email to `safety@shiftbloom.studio`.
 
 We aim to acknowledge reports within a few days and will coordinate disclosure
 with you once a fix is available.

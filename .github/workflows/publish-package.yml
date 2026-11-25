@@ -1,5 +1,13 @@
 name: Publish package
 
+# Publishes @shiftbloom-studio/privacy-filter to npm with trusted publishing
+# (OIDC). No npm token is stored in this repository. The trusted publisher on
+# npmjs.com must point at this repository and this workflow file name.
+#
+# Release flow: bump "version" in packages/privacy-filter/package.json on main,
+# then publish a GitHub release (for example v0.2.0). Re-running for a version
+# that is already on npm is a no-op.
+
 on:
   release:
     types: [published]
@@ -8,9 +16,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-package
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: actions/setup-node@v6.4.0
@@ -20,21 +35,16 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Install dependencies
         run: npm ci
+      - name: Typecheck package
+        run: npm run typecheck --workspace @shiftbloom-studio/privacy-filter
       - name: Test package
         run: npm run test --workspace @shiftbloom-studio/privacy-filter
-      - name: Verify npm token (manual dispatch only)
-        if: github.event_name == 'workflow_dispatch'
-        run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       - name: Publish to npm (skips when the version already exists)
         run: |
           set -euo pipefail
           version="$(node -p "require('./packages/privacy-filter/package.json').version")"
           if npm view "@shiftbloom-studio/privacy-filter@${version}" version >/dev/null 2>&1; then
-            echo "@shiftbloom-studio/privacy-filter@${version} is already on npm — nothing to do."
+            echo "@shiftbloom-studio/privacy-filter@${version} is already on npm, nothing to do."
             exit 0
           fi
-          npm publish --workspace @shiftbloom-studio/privacy-filter --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          npm publish --workspace @shiftbloom-studio/privacy-filter --access public --provenance
