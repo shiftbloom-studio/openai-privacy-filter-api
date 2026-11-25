@@ -152,6 +152,13 @@ export function privacySections(lang: Lang): Section[] {
             ? "Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Schreib uns dazu an "
             : "You have the right to access, rectification, erasure, restriction of processing, data portability and objection, and the right to lodge a complaint with a data protection supervisory authority. To exercise them, email "}
           <Email lang={lang} />.
+          {operator.authority ? (
+            <>
+              {" "}
+              {de ? "Zuständige Aufsichtsbehörde: " : "Competent supervisory authority: "}
+              {operator.authority}.
+            </>
+          ) : null}
         </p>
       )
     },

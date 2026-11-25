@@ -16,6 +16,8 @@ export type Operator = {
   address: string[];
   /** Contact email address. */
   email: string | null;
+  /** Competent data protection supervisory authority, if named. */
+  authority: string | null;
   /** Short location shown in the footer, e.g. "Example City, Germany". */
   location: string | null;
 };
@@ -34,6 +36,7 @@ export function resolveOperator(env: Record<string, string | undefined>): Operat
       .map((line) => line.trim())
       .filter(Boolean),
     email: clean(env.NEXT_PUBLIC_OPERATOR_EMAIL),
+    authority: clean(env.NEXT_PUBLIC_OPERATOR_AUTHORITY),
     location: clean(env.NEXT_PUBLIC_OPERATOR_LOCATION)
   };
 }
@@ -45,5 +48,6 @@ export const operator: Operator = resolveOperator({
   NEXT_PUBLIC_OPERATOR_REPRESENTATIVE: process.env.NEXT_PUBLIC_OPERATOR_REPRESENTATIVE,
   NEXT_PUBLIC_OPERATOR_ADDRESS: process.env.NEXT_PUBLIC_OPERATOR_ADDRESS,
   NEXT_PUBLIC_OPERATOR_EMAIL: process.env.NEXT_PUBLIC_OPERATOR_EMAIL,
+  NEXT_PUBLIC_OPERATOR_AUTHORITY: process.env.NEXT_PUBLIC_OPERATOR_AUTHORITY,
   NEXT_PUBLIC_OPERATOR_LOCATION: process.env.NEXT_PUBLIC_OPERATOR_LOCATION
 });
