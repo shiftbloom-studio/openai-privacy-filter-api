@@ -58,7 +58,7 @@ jobs:
       web: ${{ steps.detect.outputs.web }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -140,10 +140,10 @@ jobs:
     if: needs.detect-changes.outputs.api == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
 
@@ -157,14 +157,14 @@ jobs:
         run: python -m pytest apps/api
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.1
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2.1.5
+        uses: aws-actions/amazon-ecr-login@v2.2.0
 
       - name: Restore baked model artifacts
         run: |
@@ -196,10 +196,10 @@ jobs:
     if: needs.detect-changes.outputs.web == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Node
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 26
           cache: npm
@@ -222,14 +222,14 @@ jobs:
         run: npm --workspace apps/web run build
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.1
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2.1.5
+        uses: aws-actions/amazon-ecr-login@v2.2.0
 
       - name: Build and push web image
         env:
