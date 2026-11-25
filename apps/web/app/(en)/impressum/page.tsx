@@ -1,12 +1,13 @@
 import { impressumSections } from "@/components/legal-content";
 import { LegalPage } from "@/components/legal-page";
 
-import { createPageMetadata } from "../seo";
+import { createPageMetadata } from "../../seo";
 
 export const metadata = createPageMetadata({
   title: "Impressum",
   description: "Legal notice for the OpenAI Privacy Filter Sandbox.",
   path: "/impressum",
+  languages: { en: "/impressum", de: "/de/impressum" },
   imageAlt: "Impressum for the OpenAI Privacy Filter Sandbox"
 });
 

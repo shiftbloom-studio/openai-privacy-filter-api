@@ -10,6 +10,8 @@ const staticExport = process.env.PRIVACY_FILTER_STATIC_EXPORT === "1";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Two root layouts (app/(en) and app/de) set <html lang>; the 404 page needs its own.
+  experimental: { globalNotFound: true },
   pageExtensions: staticExport ? ["tsx", "ts"] : ["server.ts", "tsx", "ts"],
   ...(staticExport ? { output: "export", images: { unoptimized: true } } : {})
 };

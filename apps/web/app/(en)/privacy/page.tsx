@@ -1,13 +1,14 @@
 import { privacySections } from "@/components/legal-content";
 import { LegalPage } from "@/components/legal-page";
 
-import { createPageMetadata } from "../seo";
+import { createPageMetadata } from "../../seo";
 
 export const metadata = createPageMetadata({
   title: "Privacy Policy",
   description:
     "Privacy policy for the OpenAI Privacy Filter Sandbox: in-browser processing, hosting and the model download.",
   path: "/privacy",
+  languages: { en: "/privacy", de: "/de/datenschutz" },
   imageAlt: "Privacy policy for the OpenAI Privacy Filter Sandbox"
 });
 

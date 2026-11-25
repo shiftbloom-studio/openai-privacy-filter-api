@@ -19,7 +19,7 @@ export function SiteHeader(): ReactNode {
           <span className="seed">.</span>
         </span>
       </a>
-      <nav className="site-nav" aria-label="Shiftbloom Studio">
+      <nav className="site-nav" aria-label="Main">
         {studioLinks.map((link) => (
           <a href={link.href} key={link.href}>
             {link.label}
