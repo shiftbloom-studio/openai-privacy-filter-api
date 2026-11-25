@@ -7,6 +7,7 @@ export const metadata = createPageMetadata({
   title: "Impressum (Deutsch)",
   description: "Impressum der OpenAI Privacy Filter Sandbox.",
   path: "/de/impressum",
+  languages: { en: "/impressum", de: "/de/impressum" },
   imageAlt: "Impressum der OpenAI Privacy Filter Sandbox"
 });
 

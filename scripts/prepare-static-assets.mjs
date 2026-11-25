@@ -7,8 +7,9 @@
  *   runtime from jsDelivr at run time (env.backends.onnx.wasm.wasmPaths), so
  *   the bundled copy is never requested, and at ~26 MB it exceeds the 25 MiB
  *   per-file limit of Workers static assets.
- * - Writes a `_headers` file with security headers and long-lived caching for
- *   content-hashed build output.
+ * - Writes a `_headers` file with security headers, long-lived caching for
+ *   content-hashed build output, and an image type for the extensionless
+ *   Open Graph image (link previews ignore it when it is served as binary).
  */
 import { readdir, rm, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
@@ -53,6 +54,9 @@ const headers = `/*
 
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+
+/opengraph-image
+  Content-Type: image/png
 `;
 await writeFile(join(outDir, "_headers"), headers);
 console.log("wrote _headers");
