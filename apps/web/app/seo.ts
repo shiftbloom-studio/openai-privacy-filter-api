@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 
 export const siteName = "OpenAI Privacy Filter Sandbox";
-export const studioName = "Shiftbloom Studio";
+export const studioName = "shiftbloom studio";
+export const studioUrl = "https://shiftbloom.studio";
+export const repoUrl = "https://github.com/shiftbloom-studio/openai-privacy-filter-api";
 export const defaultTitle = `${siteName} | ${studioName}`;
 export const defaultDescription =
-  "Test OpenAI's openai/privacy-filter model in a browser sandbox for PII detection, redaction modes, entity spans, and API integration notes.";
+  "Run OpenAI's openai/privacy-filter model in your browser to find names, emails, phone numbers, addresses and secrets in text, then mask or remove them. The text never leaves your device.";
 
 export const keywords = [
   "OpenAI privacy filter",
@@ -14,7 +16,7 @@ export const keywords = [
   "privacy filtering API",
   "AI privacy sandbox",
   "text redaction tool",
-  "Shiftbloom Studio"
+  "shiftbloom studio"
 ];
 
 export const siteUrl = resolveSiteUrl();
@@ -23,25 +25,29 @@ export const socialImage = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "OpenAI Privacy Filter Sandbox by Shiftbloom Studio"
+  alt: "OpenAI Privacy Filter Sandbox by shiftbloom studio"
 };
 
 export function createPageMetadata({
   title,
   description,
   path,
-  imageAlt = socialImage.alt
+  imageAlt = socialImage.alt,
+  languages
 }: {
   title: string;
   description: string;
   path: string;
   imageAlt?: string;
+  /** hreflang pairs for pages that exist in English and German. */
+  languages?: { en: string; de: string };
 }): Metadata {
   return {
     title,
     description,
     alternates: {
-      canonical: path
+      canonical: path,
+      ...(languages ? { languages: { en: languages.en, de: languages.de, "x-default": languages.en } } : {})
     },
     openGraph: {
       type: "website",
@@ -49,7 +55,7 @@ export function createPageMetadata({
       siteName,
       title,
       description,
-      locale: "en_US",
+      locale: languages && path === languages.de ? "de_DE" : "en_US",
       images: [
         {
           ...socialImage,
@@ -85,4 +91,51 @@ function resolveSiteUrl() {
   } catch {
     return new URL(fallback);
   }
+}
+
+/** schema.org graph for the home page, so search engines and AI answer engines
+ * can tell what the sandbox does, who publishes it and where the source lives. */
+export function structuredData() {
+  const home = siteUrl.toString();
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": `${home}#app`,
+        name: siteName,
+        url: home,
+        description: defaultDescription,
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Web",
+        browserRequirements: "WebGPU recommended, WebAssembly fallback. About 900 MB model download on first use.",
+        inLanguage: "en",
+        isAccessibleForFree: true,
+        offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+        featureList: [
+          "Detects people, emails, phone numbers, addresses, URLs, dates, account numbers and secrets",
+          "Mask, remove or annotate detected spans",
+          "Runs fully in the browser with Transformers.js"
+        ],
+        license: "https://www.gnu.org/licenses/agpl-3.0.html",
+        sameAs: [repoUrl],
+        publisher: { "@id": `${studioUrl}/#org` }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": `${repoUrl}#code`,
+        name: "openai-privacy-filter-api",
+        codeRepository: repoUrl,
+        programmingLanguage: ["TypeScript", "Python"],
+        license: "https://www.gnu.org/licenses/agpl-3.0.html",
+        publisher: { "@id": `${studioUrl}/#org` }
+      },
+      {
+        "@type": "Organization",
+        "@id": `${studioUrl}/#org`,
+        name: studioName,
+        url: studioUrl
+      }
+    ]
+  };
 }
