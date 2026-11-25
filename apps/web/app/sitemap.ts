@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 
 import { siteUrl } from "./seo";
 
+export const dynamic = "force-static";
+
 const routes = [
   {
     path: "/",
@@ -22,6 +24,16 @@ const routes = [
     path: "/privacy",
     changeFrequency: "yearly",
     priority: 0.5
+  },
+  {
+    path: "/de/impressum",
+    changeFrequency: "yearly",
+    priority: 0.3
+  },
+  {
+    path: "/de/datenschutz",
+    changeFrequency: "yearly",
+    priority: 0.3
   },
   {
     path: "/tech-stack",

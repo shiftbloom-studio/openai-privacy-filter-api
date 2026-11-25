@@ -22,7 +22,8 @@ a production policy engine, classifier benchmark, or complete data governance sy
 - Optional internal-token protection between the web proxy and API.
 - Docker images for the API and web app.
 - Consent gate before the ~900 MB in-browser model download.
-- Vercel configuration for the no-compute browser-runtime deployment.
+- Static export for the no-compute browser runtime, deployable to Cloudflare Workers static assets.
+- Impressum and privacy policy in English and German, with operator details from build-time config.
 - AWS App Runner workflow, retained for self-hosters with inference compute.
 - Unit tests for schemas, redaction, API behavior, Lambda adapter, web proxy, and UI behavior.
 - Model files are kept outside source control and can be restored from deployment artifacts.
@@ -53,8 +54,8 @@ flowchart LR
 Both runtimes share the same request and response contract and the same redaction semantics, so the
 sandbox behaves identically either way.
 
-The Shiftbloom deployment on Vercel (`privacy.shiftbloom.studio`) runs the `browser` runtime because
-no server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
+The Shiftbloom deployment (`privacy.shiftbloom.studio`) is a static `browser`-runtime build served
+from Cloudflare Workers static assets, because no server-side inference compute is provisioned. The API, Lambda, and Cloud Run paths remain fully
 maintained for self-hosters — they are simply not deployed for Shiftbloom. See
 [docs/deployment.md](docs/deployment.md).
 
@@ -105,8 +106,8 @@ consent prompt. See the [package README](packages/privacy-filter/README.md) for 
 - Node.js 24 or newer
 - npm
 - Docker, optional but recommended for deployment parity
-- AWS CLI, optional: only for the retained App Runner and Lambda paths. Not needed for the Vercel
-  deployment or for local browser-runtime development.
+- AWS CLI, optional: only for the retained App Runner and Lambda paths. Not needed for the
+  Cloudflare deployment or for local browser-runtime development.
 
 The real model runtime requires `torch` and `transformers`. Unit tests do not download or load the
 model unless the explicit real-model smoke test is enabled.
@@ -252,6 +253,13 @@ See [docs/api.md](docs/api.md) for the API contract.
 | `HF_HOME` | API | `.hf-cache` locally | Hugging Face cache directory. |
 | `PRIVACY_FILTER_API_URL` | web | `http://localhost:8000` | API base URL used by the Next.js server-side proxy. Only used in `server` runtime. |
 | `NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` | web | `browser` | `browser` runs the model in-browser (WebGPU/WASM). `server` proxies to the FastAPI service. |
+| `PRIVACY_FILTER_STATIC_EXPORT` | web | empty | `1` builds a static export (`apps/web/out`) without the server proxy. Set by `npm run build:static`. |
+| `NEXT_PUBLIC_OPERATOR_NAME` | web | empty | Operator shown in the Impressum and privacy policy. |
+| `NEXT_PUBLIC_OPERATOR_REPRESENTATIVE` | web | empty | Person legally representing the operator. |
+| `NEXT_PUBLIC_OPERATOR_ADDRESS` | web | empty | Postal address, lines separated with `\|`. |
+| `NEXT_PUBLIC_OPERATOR_EMAIL` | web | empty | Contact email for legal and privacy requests. |
+| `NEXT_PUBLIC_OPERATOR_AUTHORITY` | web | empty | Competent data protection supervisory authority named in the privacy policy. |
+| `NEXT_PUBLIC_OPERATOR_LOCATION` | web | empty | Short location shown in the footer. |
 
 ## Verification
 
@@ -323,48 +331,44 @@ Do not commit model files to the repository.
 ## Deployment
 
 The project can run anywhere that supports Docker containers. The included deployment notes cover
-Vercel, Docker, AWS Lambda container images, Google Cloud Run, Cloudflare routing, and the AWS App
-Runner setup that remains available to self-hosters. See [docs/deployment.md](docs/deployment.md).
+Cloudflare Workers static assets, Docker, AWS Lambda container images, Google Cloud Run, and the
+AWS App Runner setup that remains available to self-hosters. See [docs/deployment.md](docs/deployment.md).
 
-### Shiftbloom deployment (Vercel)
+### Shiftbloom deployment (Cloudflare)
 
-`privacy.shiftbloom.studio` is deployed on **Vercel** and runs the **`browser` runtime**: the model
-executes in the visitor's browser, so no server-side inference compute is required or provisioned.
+`privacy.shiftbloom.studio` runs the **`browser` runtime** as a fully static site on
+**Cloudflare Workers static assets**. The model executes in the visitor's browser, so no server-side
+inference compute is required or provisioned.
 
-The repository ships a [vercel.json](vercel.json) for this setup. Configure the Vercel project with:
+```bash
+npm run build:static       # package + static Next.js export to apps/web/out
+npm run deploy:cloudflare  # wrangler deploy --config apps/web/wrangler.jsonc
+```
 
-| Setting | Value |
-| --- | --- |
-| Root Directory | `apps/web` |
-| Framework Preset | Next.js |
-| Build Command | `cd ../.. && npm run build` |
-| Install Command | `cd ../.. && npm install` |
-| Output Directory | `.next` |
+`PRIVACY_FILTER_STATIC_EXPORT=1` (set by `build:static`) switches Next.js to `output: "export"` and
+leaves out the server-only `/api/filter` proxy. `scripts/prepare-static-assets.mjs` then drops the
+bundled ONNX Runtime WASM binary (Transformers.js loads it from jsDelivr at run time, and it exceeds
+the 25 MiB per-file limit) and writes a `_headers` file.
 
-`NEXT_PUBLIC_PRIVACY_FILTER_RUNTIME` is pinned to `browser` in `vercel.json`, so no environment
-variable is strictly required. It is inlined at build time, so changing it needs a redeploy rather
-than a restart.
+Shiftbloom builds through Cloudflare Workers Builds connected to this repository: build command
+`npm run build:static`, deploy command `npm run deploy:cloudflare`, `NODE_VERSION=24`. The operator
+details for the Impressum and privacy policy are set as build variables (see
+[Configuration](#configuration)). The custom domain is attached to the Worker in the Cloudflare
+dashboard, so `wrangler.jsonc` holds no account-specific values.
 
 Because the weights are roughly 900 MB, the sandbox asks for consent before downloading anything.
 Nothing is fetched on page load.
 
 ### AWS App Runner (available to self-hosters)
 
-The repository also includes a GitHub Actions workflow for App Runner, retained for operators who
-have provisioned inference compute. It is **not** part of the Shiftbloom deployment and is currently
-disabled:
-
-- API App Runner service: `privacy-filter-api`
-- Web App Runner service: `privacy-filter-web`
-- AWS region: `eu-central-1`
-- ECR repositories: `privacy-filter-api`, `privacy-filter-web`
-- Model artifact bucket: `shiftbloom-privacy-filter-build-000000000000-eu-central-1`
+The repository also includes a GitHub Actions workflow for App Runner, for operators who have
+provisioned inference compute. It is **not** part of the Shiftbloom deployment and does nothing until
+you set the repository variables it reads (`AWS_ACCOUNT_ID`, `AWS_ROLE_TO_ASSUME`,
+`API_APP_RUNNER_SERVICE_ARN`, `WEB_APP_RUNNER_SERVICE_ARN`, `MODEL_ARTIFACT_BUCKET`, and optionally
+`AWS_REGION`, `API_ECR_REPOSITORY`, `WEB_ECR_REPOSITORY`).
 
 On pushes to `main`, [deploy-aws.yml](.github/workflows/deploy-aws.yml) detects changed paths and
 deploys only the affected surface. It can also be run manually with `all`, `api`, `web`, or `auto`.
-
-Forks should replace the AWS account id, service ARNs, ECR repositories, artifact bucket, and OIDC
-role with their own infrastructure.
 
 ## Security and Privacy Notes
 

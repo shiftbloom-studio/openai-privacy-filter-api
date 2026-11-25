@@ -61,8 +61,8 @@
     "@huggingface/transformers": "4.3.2"
   },
   "devDependencies": {
-    "tsup": "^8.5.1",
+    "tsup": "^9.0.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^5.1.2"
   }
 }

@@ -1,15 +1,8 @@
-import { checkBotId } from "botid/server";
-
 import { normalizeApiBaseUrl, validateFilterRequest } from "@shiftbloom-studio/privacy-filter";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
-  const verification = await checkBotId();
-  if (verification.isBot) {
-    return Response.json({ error: "Access denied." }, { status: 403 });
-  }
-
   let payload: unknown;
 
   try {
