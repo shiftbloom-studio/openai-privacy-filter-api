@@ -40,7 +40,9 @@ const jetbrainsMono = localFont({
   display: "swap"
 });
 
-export const metadata: Metadata = {
+/* Shared by the two root layouts, app/(en) and app/de, which exist only so
+   that <html lang> matches the language of each page. */
+export const sharedMetadata: Metadata = {
   metadataBase: siteUrl,
   title: {
     default: defaultTitle,
@@ -106,19 +108,19 @@ export const metadata: Metadata = {
   }
 };
 
-export const viewport: Viewport = {
+export const sharedViewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#ffffff",
   colorScheme: "light"
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export function RootShell({ lang, children }: { lang: "en" | "de"; children: ReactNode }) {
   return (
     /* The font variables must sit on <html>: globals.css composes --font-display,
        --font-sans and --font-mono on :root, and a var() that is undefined there
        makes the composed value invalid for the whole page. */
-    <html lang="en" className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang={lang} className={`${clashDisplay.variable} ${generalSans.variable} ${jetbrainsMono.variable}`}>
       <body>
         <script
           type="application/ld+json"

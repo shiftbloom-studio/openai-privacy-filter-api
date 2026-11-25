@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/components/site-header";
 
-import { createPageMetadata } from "../seo";
+import { createPageMetadata } from "../../seo";
 
 export const metadata = createPageMetadata({
   title: "OpenAI Privacy Filter API Notes",
