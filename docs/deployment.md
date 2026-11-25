@@ -37,7 +37,7 @@ For Cloudflare Workers Builds, connect the repository and use:
 | Root directory | `/` |
 | Build command | `npm run build:static` |
 | Deploy command | `npm run deploy:cloudflare` |
-| Build variables | `NODE_VERSION=24` and the `NEXT_PUBLIC_OPERATOR_*` values |
+| Build variables | `NODE_VERSION=26` and the `NEXT_PUBLIC_OPERATOR_*` values |
 
 Attach the custom domain to the `privacy-filter` Worker in the dashboard (or add a `routes` entry to
 your own copy of `wrangler.jsonc`).
