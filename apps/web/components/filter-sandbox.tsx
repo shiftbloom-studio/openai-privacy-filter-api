@@ -211,7 +211,7 @@ export function FilterSandbox(): ReactNode {
             </>
           ) : (
             <div className="placeholder">
-              <span>infinity</span>
+              <span aria-hidden="true">∞</span>
               <p>
                 {runtime === "browser"
                   ? "Results appear here once the in-browser model is ready."
