@@ -1,7 +1,7 @@
 import { privacySections } from "@/components/legal-content";
 import { LegalPage } from "@/components/legal-page";
 
-import { createPageMetadata } from "../seo";
+import { createPageMetadata } from "../../seo";
 
 export const metadata = createPageMetadata({
   title: "Privacy Policy",
