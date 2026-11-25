@@ -14,7 +14,7 @@ services:
       - hf-cache:/models/huggingface
 
   web:
-    image: node:24-alpine
+    image: node:26-alpine
     depends_on:
       - api
     working_dir: /workspace
