@@ -10,6 +10,7 @@ describe("resolveOperator", () => {
     expect(operator.address).toEqual([]);
     expect(operator.email).toBeNull();
     expect(operator.location).toBeNull();
+    expect(operator.authority).toBeNull();
   });
 
   it("splits the address on pipes and trims every value", () => {

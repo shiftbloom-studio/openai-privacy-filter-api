@@ -258,6 +258,7 @@ See [docs/api.md](docs/api.md) for the API contract.
 | `NEXT_PUBLIC_OPERATOR_REPRESENTATIVE` | web | empty | Person legally representing the operator. |
 | `NEXT_PUBLIC_OPERATOR_ADDRESS` | web | empty | Postal address, lines separated with `\|`. |
 | `NEXT_PUBLIC_OPERATOR_EMAIL` | web | empty | Contact email for legal and privacy requests. |
+| `NEXT_PUBLIC_OPERATOR_AUTHORITY` | web | empty | Competent data protection supervisory authority named in the privacy policy. |
 | `NEXT_PUBLIC_OPERATOR_LOCATION` | web | empty | Short location shown in the footer. |
 
 ## Verification
