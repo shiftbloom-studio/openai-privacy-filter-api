@@ -62,6 +62,10 @@ export type LoadProgress = {
   /** 0-100 when knowable, otherwise null. */
   percent: number | null;
   detail: string;
+  /** Bytes downloaded so far across all model files, when known. */
+  loadedBytes?: number;
+  /** Total bytes of the model files seen so far, when known. */
+  totalBytes?: number;
 };
 
 export type BrowserEngineOptions = {
@@ -162,9 +166,25 @@ export function loadBrowserEngine(options: BrowserEngineOptions = {}): Promise<T
           device,
           dtype: BROWSER_DEFAULT_DTYPE,
           progress_callback: (event: ProgressEvent) => {
+            // Transformers.js reports every file separately ("progress") and
+            // also sums them up ("progress_total"). Only the sum is useful for
+            // a single progress bar; per-file events would make it jump.
+            if (event.status === "progress") {
+              return;
+            }
+            if (event.status === "progress_total") {
+              onProgress?.({
+                stage: "loading",
+                percent: toPercent(event),
+                detail: "downloading model",
+                loadedBytes: event.loaded,
+                totalBytes: event.total
+              });
+              return;
+            }
             onProgress?.({
               stage: "loading",
-              percent: toPercent(event),
+              percent: null,
               detail: event.file ?? `loading model (${device})`
             });
           }

@@ -128,7 +128,7 @@ export function RootShell({ lang, children }: { lang: "en" | "de"; children: Rea
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c") }}
         />
         {children}
-        <SiteFooter />
+        <SiteFooter lang={lang} />
       </body>
     </html>
   );

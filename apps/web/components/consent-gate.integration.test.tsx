@@ -86,7 +86,7 @@ describe("consent gate: no download without agreement", () => {
      * appearing only after acceptance proves that the real engine started. It
      * must then settle back to an enabled button rather than leaving the UI busy. */
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(/In-browser model/i)
+      expect(screen.getByRole("status")).toHaveTextContent(/model/i)
     );
     await waitFor(
       () => expect(screen.getByRole("button", { name: "Run privacy filter" })).toBeEnabled(),

@@ -1,17 +1,15 @@
 import { ReactNode } from "react";
 
 import { Bloom } from "@/components/bloom";
+import { SOURCE_URL } from "@/lib/source";
 
-const studioLinks = [
-  { href: "https://shiftbloom.studio/#code", label: "Code" },
-  { href: "https://shiftbloom.studio/#art", label: "Art" },
-  { href: "https://shiftbloom.studio/#about", label: "Collective" }
-];
-
+/* App header, not the studio nav: the wordmark goes home to the studio, the
+   links stay inside this tool. No red button here; the only red button on
+   the page is "Run privacy filter". */
 export function SiteHeader(): ReactNode {
   return (
     <header className="site-header">
-      <a className="site-brand" href="https://shiftbloom.studio/#hero" aria-label="Open shiftbloom studio">
+      <a className="site-brand" href="https://shiftbloom.studio" aria-label="shiftbloom studio home">
         <Bloom className="brand-logo" size={30} />
         <span className="brand-wordmark">
           <span>shiftbloom</span>
@@ -20,14 +18,9 @@ export function SiteHeader(): ReactNode {
         </span>
       </a>
       <nav className="site-nav" aria-label="Main">
-        {studioLinks.map((link) => (
-          <a href={link.href} key={link.href}>
-            {link.label}
-          </a>
-        ))}
-        <a className="modern-btn nav-cta" href="mailto:hello@shiftbloom.studio">
-          Contribute
-        </a>
+        <a href="/#sandbox">Try it</a>
+        <a href="/docs">API notes</a>
+        <a href={SOURCE_URL}>Source</a>
       </nav>
     </header>
   );

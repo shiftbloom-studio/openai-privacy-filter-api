@@ -1,8 +1,7 @@
-import { Bloom } from "@/components/bloom";
 import { FilterSandbox } from "@/components/filter-sandbox";
 import { SiteHeader } from "@/components/site-header";
 
-import { createPageMetadata } from "../seo";
+import { createPageMetadata } from "@/app/seo";
 
 export const metadata = createPageMetadata({
   title: "OpenAI Privacy Filter Sandbox for PII Redaction",
@@ -14,11 +13,10 @@ export const metadata = createPageMetadata({
 /* Sprinkles: the sky around the flower — margins only, seven at most,
    red or ink only, twinkling staggered at 4–5s intervals. */
 const SPRINKLES: Array<{ x: string; y: string; size: number; kind: "spark" | "cross" | "dot"; delay: number }> = [
-  { x: "2%", y: "12%", size: 14, kind: "spark", delay: 0 },
-  { x: "96%", y: "38%", size: 12, kind: "cross", delay: 0.9 },
-  { x: "5%", y: "58%", size: 8, kind: "dot", delay: 1.7 },
-  { x: "92%", y: "72%", size: 16, kind: "spark", delay: 2.4 },
-  { x: "45%", y: "2%", size: 7, kind: "dot", delay: 3.1 }
+  { x: "-3%", y: "8%", size: 14, kind: "spark", delay: 0 },
+  { x: "97%", y: "18%", size: 12, kind: "cross", delay: 0.9 },
+  { x: "-2%", y: "70%", size: 8, kind: "dot", delay: 1.7 },
+  { x: "99%", y: "64%", size: 16, kind: "spark", delay: 2.4 }
 ];
 
 function Sprinkle({ x, y, size, kind, delay }: (typeof SPRINKLES)[number]) {
@@ -49,27 +47,25 @@ export default function Home() {
     <main className="extension-shell" id="main-content">
       <SiteHeader />
       <section className="extension-hero" aria-labelledby="page-title">
-        <div className="hero-bloom">
-          <Bloom className="breathe" size={180} variant="gradient" />
-        </div>
         {SPRINKLES.map((sprinkle) => (
           <Sprinkle key={`${sprinkle.x}-${sprinkle.y}`} {...sprinkle} />
         ))}
         <h1 className="extension-headline" id="page-title">
-          <span className="headline-word">OpenAI privacy filter</span>{" "}
-          <span className="headline-accent">sandbox.</span>
+          <span className="headline-word">OpenAI privacy filter,</span>{" "}
+          <span className="headline-accent">in your browser.</span>
         </h1>
         <p className="extension-copy">
-          A focused testing surface for{" "}
-          <a href="https://huggingface.co/openai/privacy-filter">openai/privacy-filter</a>, a
-          privacy-detection model created by OpenAI. Paste sample text, choose a redaction mode, and
-          inspect the model response without leaving the sandbox.
+          Paste an email, a chat log or a support ticket. OpenAI&apos;s open{" "}
+          <a href="https://huggingface.co/openai/privacy-filter">privacy-filter</a> model marks
+          names, addresses, phone numbers, account numbers and secrets, and you decide whether to
+          mask, remove or label them. The model runs on your device, so nothing you paste is
+          uploaded.
         </p>
-        <div className="extension-actions">
-          <a className="tertiary-btn" href="/docs">
-            API notes
-          </a>
-        </div>
+        <p className="hero-example" aria-label="Example output">
+          <span className="hero-example-label">Example</span>
+          Hi, I&apos;m <mark>[private_person]</mark>, call me on <mark>[private_phone]</mark> or
+          write to <mark>[private_email]</mark>.
+        </p>
       </section>
 
       <FilterSandbox />
