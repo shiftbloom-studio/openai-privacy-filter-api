@@ -28,6 +28,17 @@ function installStorage(): void {
 
 const { FilterSandbox } = await import("./filter-sandbox");
 
+/** True for requests to the model hosts (Hugging Face and its subdomains, jsDelivr). */
+function isModelHost(url: string): boolean {
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return false;
+  }
+  return host === "huggingface.co" || host.endsWith(".huggingface.co") || host === "cdn.jsdelivr.net";
+}
+
 describe("consent gate: no download without agreement", () => {
   beforeEach(() => {
     modelRequests.length = 0;
@@ -37,7 +48,7 @@ describe("consent gate: no download without agreement", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input instanceof Request ? input.url : input);
-        if (url.includes("huggingface.co") || url.includes("cdn.jsdelivr.net")) {
+        if (isModelHost(url)) {
           modelRequests.push(url);
           throw new Error(`blocked in test: ${url}`);
         }

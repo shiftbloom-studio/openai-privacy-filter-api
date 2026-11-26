@@ -1,7 +1,10 @@
 import { FILTER_MODES, type FilterMode, type FilterRequest, type PrivacySpan } from "./types";
 
 export function normalizeApiBaseUrl(value: string): string {
-  return value.replace(/\/+$/, "");
+  // Trim trailing slashes with a plain scan (a /\/+$/ regex backtracks on long slash runs).
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47 /* "/" */) end--;
+  return value.slice(0, end);
 }
 
 export function isFilterMode(value: unknown): value is FilterMode {
