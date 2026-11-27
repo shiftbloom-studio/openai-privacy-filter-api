@@ -10,6 +10,8 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
   },
+  // Keeps Workers Logs on and real-time Issues (error alerts) on across deploys.
+  "observability": { "enabled": true, "issues": { "enabled": true } },
   "workers_dev": false,
   "preview_urls": false
 }
