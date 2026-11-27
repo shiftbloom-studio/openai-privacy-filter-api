@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/privacy-filter/package.json packages/privacy-filter/package.json
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 FROM docker.io/library/node:26-alpine AS builder
 
@@ -40,12 +40,14 @@ COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/packages/privacy-filter/package.json ./packages/privacy-filter/package.json
 COPY --from=builder /app/packages/privacy-filter/dist ./packages/privacy-filter/dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder --chown=node:node /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/app ./apps/web/app
 COPY --from=builder /app/apps/web/components ./apps/web/components
 COPY --from=builder /app/apps/web/lib ./apps/web/lib
 COPY --from=builder /app/apps/web/next.config.ts ./apps/web/next.config.ts
+
+USER node
 
 EXPOSE 3000
 CMD ["npm", "--workspace", "apps/web", "run", "start"]

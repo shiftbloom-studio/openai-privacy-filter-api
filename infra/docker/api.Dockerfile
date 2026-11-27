@@ -8,7 +8,7 @@ COPY apps/api/README.md apps/api/README.md
 COPY apps/api/src apps/api/src
 COPY README.md README.md
 
-RUN python -m pip install --upgrade pip wheel
+RUN python -m pip install --only-binary :all: --upgrade pip==26.3 wheel==0.48.0
 RUN python -m pip wheel --wheel-dir /wheels ./apps/api
 RUN if [ "$API_EXTRAS" = "inference" ]; then \
       python -m pip wheel --wheel-dir /wheels --index-url https://download.pytorch.org/whl/cpu torch==2.11.0 && \
@@ -30,7 +30,10 @@ ENV HF_HOME=/models/huggingface \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --home-dir /app --shell /usr/sbin/nologin app \
+    && mkdir -p /models/huggingface \
+    && chown app:app /models/huggingface
 
 WORKDIR /app
 COPY privacy-filter-model /models/privacy-filter
@@ -41,6 +44,8 @@ RUN if [ "$API_EXTRAS" = "inference" ]; then \
       python -m pip install --no-cache-dir --no-index --find-links=/wheels privacy-filter-api; \
     fi \
     && rm -rf /wheels
+
+USER app
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
