@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.12-slim AS builder
+FROM docker.io/library/python:3.15-slim AS builder
 
 ARG API_EXTRAS=inference
 WORKDIR /build
@@ -11,13 +11,13 @@ COPY README.md README.md
 RUN python -m pip install --only-binary :all: --upgrade pip==26.3 wheel==0.48.0
 RUN python -m pip wheel --wheel-dir /wheels ./apps/api
 RUN if [ "$API_EXTRAS" = "inference" ]; then \
-      python -m pip wheel --wheel-dir /wheels --index-url https://download.pytorch.org/whl/cpu torch==2.11.0 && \
-      python -m pip wheel --wheel-dir /wheels transformers==5.8.0; \
+      python -m pip wheel --wheel-dir /wheels --index-url https://download.pytorch.org/whl/cpu torch==2.15.0 && \
+      python -m pip wheel --wheel-dir /wheels transformers==5.24.1; \
     else \
       true; \
     fi
 
-FROM docker.io/library/python:3.12-slim AS runtime
+FROM docker.io/library/python:3.15-slim AS runtime
 
 ARG API_EXTRAS=inference
 ARG PRIVACY_FILTER_MODEL_ID=openai/privacy-filter
