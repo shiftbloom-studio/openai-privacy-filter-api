@@ -115,7 +115,7 @@ export function privacySections(lang: Lang): Section[] {
     },
     processing,
     {
-      title: de ? "Hosting" : "Hosting",
+      title: "Hosting",
       body: (
         <p>
           {de
